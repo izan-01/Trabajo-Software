@@ -1,5 +1,5 @@
 # Trabajo-Software
-Vamos a hacer un trabajo dde software y usaremos este repositorio para compartir los progresos, códigos y demás
+Vamos a hacer un trabajo de software y usaremos este repositorio para compartir los progresos, códigos y demás
 Este es el objetivo:
 El objetivo de la entrega es realizar un análisis de los datos electorales, llevando a cabo la depuración, los resúmenes y los gráficos que consideres necesarios, tanto de los resultados como de la precisión de las encuestas electorales.
 
