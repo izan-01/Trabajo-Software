@@ -1,5 +1,14 @@
 # Trabajo-Software
-Vamos a hacer un trabajo de software y usaremos este repositorio para compartir los progresos, códigos y demás
+Vamos a hacer un trabajo de software y usaremos este repositorio para compartir los progresos, códigos y demás.
+
+Todo el trabajo que se vaya haciendo cada uno por su cuenta y en grupo se tiene que subir a la carpeta correspondiente.
+No se haceen los códigos en la propia presentación, eso se añade al final para evigtar lios.
+
+Hay cuatro carpetas creadas, en la de data se guardan los datasets que necesitaremos.
+En la carpeta de presentation se guardará la presemntación que hay que presentar el dia del examen final
+En visualizations se guardan las gráficas que necesitaremos y presentaremos
+Y, por último, en scripts se guardarán los códigos y funciones que se usarán.
+
 Este es el objetivo:
 El objetivo de la entrega es realizar un análisis de los datos electorales, llevando a cabo la depuración, los resúmenes y los gráficos que consideres necesarios, tanto de los resultados como de la precisión de las encuestas electorales.
 
