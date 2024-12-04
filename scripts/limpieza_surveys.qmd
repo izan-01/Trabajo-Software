@@ -1,0 +1,101 @@
+---
+title: "limpieza surveys"
+format: html
+editor: visual
+---
+
+## LIMPIEZA DE DATOS
+
+```{r}
+rm(list = ls())
+library(tidyverse)
+```
+
+```{r}
+election_data <- read_csv(file = "./data/datos_elecciones_brutos.csv")
+cod_mun <- read_csv(file = "./data/cod_mun.csv")
+surveys <- read_csv(file = "./data/historical_surveys.csv")
+abbrev <- read_csv(file = "./data/siglas.csv")
+```
+
+LIMPIEZA DE LOS DATOS
+
+SURVEYS
+
+"PARTIDO SOCIALISTA OBRERO ESPAÑOL"
+
+"PARTIDO POPULAR"
+
+"CIUDADANOS"
+
+"PARTIDO NACIONALISTA VASCO"
+
+"BLOQUE NACIONALISTA GALLEGO"
+
+"CONVERGÈNCIA I UNIÓ"
+
+"UNIDAS PODEMOS - IU"
+
+"ESQUERRA REPUBLICANA DE CATALUNYA"
+
+"EH - BILDU"
+
+"MÁS PAÍS"
+
+"VOX"
+
+```{r}
+partidos_a_filtrar <- c("PARTIDO SOCIALISTA OBRERO ESPAÑOL", "PSOE", 
+                        "PARTIDO POPULAR", 
+                        "CIUDADANOS", "C'S", 
+                        "PARTIDO NACIONALISTA VASCO", "EAJ-PNV", 
+                        "BLOQUE NACIONALISTA GALLEGO", "BNG", 
+                        "CONVERGÈNCIA I UNIÓ", "CDC", 
+                        "UNIDAS PODEMOS", "IU", "PODEM", "EZKER BATUA", 
+                        "ESQUERRA REPUBLICANA DE CATALUNYA", "ERC", 
+                        "EH - BILDU", "SORTU", "EUSKO ALKARTASUNA", 
+                        "ALTERNATIBA", "ARALAR", 
+                        "MÁS PAÍS", "VOX")
+
+filtrado <- abbrev |> 
+    filter(str_detect(denominacion, str_c(partidos_a_filtrar, collapse = "|"))) |>
+  filter(!denominacion %in% c("PARTIDO DE ASOCIACION DE VIUDAS Y ESPOSAS LEGALES", "CONVERGENCIA CIUDADANA DEL SURESTE", "PARTIU ASTURIANISTA", "CIUDADANOS EN BLANCO", "AGRUPACION CIUDADANA", "INICIATIVA CIUDADANA BURGALESA", "PARTIDO CIUDADANOS UNIDOS DE ARAGON", "UNION CIUDADANA PROGRESISTAS INDEPENDIENTES DE CANARIAS", "CIUDADANOS DE CENTRO DEMOCRÁTICO", "FORO DE CIUDADANOS", "ACCION CIUDADANA POR MALAGA", "UNION DE CIUDADANOS INDEPENDIENTES DE TOLEDO", "CIUDADANOS DE CENTRO DEMOCRATICO-CANDIDATURA INDEP", "EN POSITIU", "JUSTIZIA SOCIAL, PARTICIPACION CIUDADANA", "POBLE LLIURE - SOM ALTERNATIVA - PIRATES DE CATALU", "CIUDADANOS INDEPENDIENTES DE LINARES UNIDOS", "MOVIMIENTO POR LA DIGNIDAD Y LA CIUDADANÍA DE CEUT","CIUDADANOS LIBRES UNIDOS", "CIUDADANOS RURALES AGRUPADOS", "CIUDADANOS DE CENTRO DEMOCRÁTICO-CANDIDATURA INDEP", "JUSTIZIA SOCIAL, PARTICIPACIÓN CIUDADANA"
+))
+filtrado
+```
+
+```{r}
+tidy_surveys<-
+  surveys |> 
+  pivot_longer(cols = -c(type_survey : turnout), names_to= "partidos",
+               values_to = "count", values_drop_na = TRUE)
+tidy_surveys
+```
+
+```{r}
+tidy_surveys<- tidy_surveys |> 
+  filter(date_elec>= "2008-01-01") |> 
+  select(-type_survey)
+```
+
+```{r}
+tidy_surveys<- tidy_surveys |> 
+  semi_join(filtrado, by = c("partidos" = "siglas"))
+tidy_surveys
+```
+
+```{r}
+tidy_surveys<- tidy_surveys |> 
+  filter(exit_poll!= TRUE) |> 
+  filter(!is.na(size) & size >= 500)
+tidy_surveys
+```
+
+```{r}
+tidy_surveys<- tidy_surveys |> 
+  mutate(field_duration = ymd(field_date_to) - ymd(field_date_from)) |> 
+  filter(field_duration > 1) |> 
+  select(-c(field_date_from, field_date_to)) |> 
+  relocate(field_duration, .after = media)
+tidy_surveys
+```
