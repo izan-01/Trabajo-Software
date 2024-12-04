@@ -15,7 +15,7 @@ El objetivo de la entrega es realizar un análisis de los datos electorales, lle
 En concreto, debes trabajar únicamente en el período de tiempo que incluye las elecciones desde 2008 hasta las últimas elecciones de 2019
 
 Obligaciones:
-Los datos deben ser convertidos a tidydata donde sea apropiado.
+Los datos deben ser convertidos a tidydata donde sea apropiado. (surveys hecho)
 
 Debes incluir al menos un join entre tablas.
 
@@ -27,7 +27,7 @@ Los siguientes elementos deben usarse al menos una vez: mutate, summarise, group
 
 Deberéis definir al menos una función (con más de 5 líneas de código)
 
-Contamos con muchos partidos que se presentan a las elecciones. Solo nos interesarán los siguientes partidos:
+Contamos con muchos partidos que se presentan a las elecciones. Solo nos interesarán los siguientes partidos: (están todos ya filtrados en la tabla llamada "filtrado")
 
 PARTIDO SOCIALISTA OBRERO ESPAÑOL (cuidado: tiene/tenía federaciones - sucursales - con otros nombres).
 
@@ -51,13 +51,13 @@ MÁS PAÍS
 
 VOX
 
-Todo lo que no esté en alguno de los anteriores partidos debe ser correctamente reagrupado (y resumido) en OTROS
+Todo lo que no esté en alguno de los anteriores partidos debe ser correctamente reagrupado (y resumido) en OTROS (esto falta)
 
 Las siglas deben ser usadas en las visualizaciones (ideas en https://r-graph-gallery.com/).
 
 Debes usar todos los archivos en algún momento.
 
-Debes descartar las encuestas que:
+Debes descartar las encuestas que: (hecho)
 
 -   se refieran a elecciones anteriores a 2008
 -   sean a pie de urna
