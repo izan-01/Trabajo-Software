@@ -1,0 +1,3 @@
+"0","tidy_surveys<- tidy_surveys |> "
+"0","  semi_join(filtrado, by = c(""partidos"" = ""siglas""))"
+"0","tidy_surveys"

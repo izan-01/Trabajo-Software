@@ -1,0 +1,5 @@
+"0","tidy_surveys<-"
+"0","  surveys |> "
+"0","  pivot_longer(cols = -c(type_survey : turnout), names_to= ""partidos"","
+"0","               values_to = ""count"", values_drop_na = TRUE)"
+"0","tidy_surveys"

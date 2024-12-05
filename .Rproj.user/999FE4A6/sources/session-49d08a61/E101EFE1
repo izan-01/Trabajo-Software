@@ -1,0 +1,31 @@
+{
+    "id": "E101EFE1",
+    "path": "C:/Users/izand/OneDrive/trabajo_sft_Github/Trabajo-Software/scripts/limpieza_surveys.qmd",
+    "project_path": "scripts/limpieza_surveys.qmd",
+    "type": "quarto_markdown",
+    "hash": "2276717375",
+    "contents": "",
+    "dirty": false,
+    "created": 1733395944860.0,
+    "source_on_save": false,
+    "relative_order": 1,
+    "properties": {
+        "rmdVisualMode": "true",
+        "rmdVisualWrapConfigured": "true",
+        "source_window_id": "",
+        "Source": "Source",
+        "docOutlineVisible": "1",
+        "rmdVisualCollapsedChunks": "",
+        "rmdVisualModeLocation": "361:217.60000610351562",
+        "cursorPosition": "13,0",
+        "scrollLine": "0"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1733396612,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1733396612315,
+    "read_only": false,
+    "read_only_alternatives": []
+}
