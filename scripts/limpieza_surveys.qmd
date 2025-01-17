@@ -80,8 +80,20 @@ tidy_surveys<- tidy_surveys |>
 
 ```{r}
 tidy_surveys<- tidy_surveys |> 
-  semi_join(filtrado, by = c("partidos" = "siglas"))
+  left_join(filtrado, by = c("partidos" = "siglas")) |> 
+  mutate(partido = if_else(partidos %in% filtrado$siglas, partidos, "OTROS")) |> 
+  select(-partidos) |> 
+  relocate(partido, .before = turnout)
 tidy_surveys
+```
+
+```{r}
+tidy_surveys<- tidy_surveys |>
+   group_by(date_elec, id_pollster, pollster, media, field_date_from, field_date_to, exit_poll, size, turnout, partido) %>%
+  summarise(
+    count = sum(count, na.rm = TRUE),
+    .groups = "drop"
+  )
 ```
 
 ```{r}

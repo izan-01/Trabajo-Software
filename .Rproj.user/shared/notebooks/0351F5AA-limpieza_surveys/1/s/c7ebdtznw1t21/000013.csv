@@ -1,0 +1,6 @@
+"0","tidy_surveys<- tidy_surveys |>"
+"0","   group_by(date_elec, id_pollster, pollster, media, field_date_from, field_date_to, exit_poll, size, turnout, partido) %>%"
+"0","  summarise("
+"0","    count = sum(count, na.rm = TRUE),"
+"0","    .groups = ""drop"""
+"0","  )"
