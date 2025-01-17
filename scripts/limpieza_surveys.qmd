@@ -60,7 +60,9 @@ partidos_a_filtrar <- c("PARTIDO SOCIALISTA OBRERO ESPAÑOL", "PSOE",
 filtrado <- abbrev |> 
     filter(str_detect(denominacion, str_c(partidos_a_filtrar, collapse = "|"))) |>
   filter(!denominacion %in% c("PARTIDO DE ASOCIACION DE VIUDAS Y ESPOSAS LEGALES", "CONVERGENCIA CIUDADANA DEL SURESTE", "PARTIU ASTURIANISTA", "CIUDADANOS EN BLANCO", "AGRUPACION CIUDADANA", "INICIATIVA CIUDADANA BURGALESA", "PARTIDO CIUDADANOS UNIDOS DE ARAGON", "UNION CIUDADANA PROGRESISTAS INDEPENDIENTES DE CANARIAS", "CIUDADANOS DE CENTRO DEMOCRÁTICO", "FORO DE CIUDADANOS", "ACCION CIUDADANA POR MALAGA", "UNION DE CIUDADANOS INDEPENDIENTES DE TOLEDO", "CIUDADANOS DE CENTRO DEMOCRATICO-CANDIDATURA INDEP", "EN POSITIU", "JUSTIZIA SOCIAL, PARTICIPACION CIUDADANA", "POBLE LLIURE - SOM ALTERNATIVA - PIRATES DE CATALU", "CIUDADANOS INDEPENDIENTES DE LINARES UNIDOS", "MOVIMIENTO POR LA DIGNIDAD Y LA CIUDADANÍA DE CEUT","CIUDADANOS LIBRES UNIDOS", "CIUDADANOS RURALES AGRUPADOS", "CIUDADANOS DE CENTRO DEMOCRÁTICO-CANDIDATURA INDEP", "JUSTIZIA SOCIAL, PARTICIPACIÓN CIUDADANA"
-))
+))|> 
+  group_by(denominacion) |> 
+  summarise(siglas = first(siglas), .groups = "drop") # Unificar duplicados
 filtrado
 ```
 
@@ -84,15 +86,25 @@ tidy_surveys<- tidy_surveys |>
   mutate(partido = if_else(partidos %in% filtrado$siglas, partidos, "OTROS")) |> 
   select(-partidos) |> 
   relocate(partido, .before = turnout)
-tidy_surveys
 ```
 
 ```{r}
-tidy_surveys<- tidy_surveys |>
-   group_by(date_elec, id_pollster, pollster, media, field_date_from, field_date_to, exit_poll, size, turnout, partido) %>%
+tidy_surveys <- tidy_surveys |> 
+  group_by(
+    date_elec,       # Fecha de la elección
+    id_pollster,     # Identificador de la casa encuestadora
+    pollster,        # Nombre de la casa encuestadora
+    media,           # Medio asociado
+    partido         # Partido (incluyendo "OTROS")
+  ) |> 
   summarise(
-    count = sum(count, na.rm = TRUE),
-    .groups = "drop"
+    count = sum(count, na.rm = TRUE),   # Sumar votos por partido
+    field_date_from = first(field_date_from),  # Duración del trabajo de campo (igual para todas las filas de una encuesta)
+    field_date_to = first(field_date_to),
+    exit_poll = first(exit_poll),      # Si es o no encuesta a pie de urna (debe ser igual dentro del grupo)
+    size = first(size),                # Tamaño muestral
+    turnout = first(turnout),          # Participación estimada
+    .groups = "drop"                   # Eliminar niveles de agrupación
   )
 ```
 
