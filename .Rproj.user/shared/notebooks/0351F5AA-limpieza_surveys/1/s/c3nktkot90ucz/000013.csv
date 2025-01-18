@@ -1,6 +1,0 @@
-"0","tidy_surveys<- tidy_surveys |> "
-"0","  mutate(field_duration = ymd(field_date_to) - ymd(field_date_from)) |> "
-"0","  filter(field_duration > 1) |> "
-"0","  select(-c(field_date_from, field_date_to)) |> "
-"0","  relocate(field_duration, .after = media)"
-"0","tidy_surveys"
