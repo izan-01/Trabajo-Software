@@ -1,3 +1,6 @@
+"0","library(tidyverse)"
+"0",""
+"0","# Cargar datos"
 "0","election_data <- read_csv(file = ""../data/data/datos_elecciones_brutos.csv"")"
 "2","Aviso:"
 "2"," [38;5;252mOne or more parsing issues, call `problems()` on your data frame for details, e.g.:
@@ -52,3 +55,27 @@
 [36mℹ[39m Use `spec()` to retrieve the full column specification for this data.
 [36mℹ[39m Specify the column types or set `show_col_types = FALSE` to quiet this message.
 "
+"0","# Transformar datos de elecciones a formato tidy"
+"0","datos_elecciones_tidy <- election_data |> "
+"0","  pivot_longer("
+"0","    cols = -c(tipo_eleccion, anno, mes, vuelta, codigo_ccaa, codigo_provincia, codigo_municipio, "
+"0","              codigo_distrito_electoral, numero_mesas, censo, participacion_1, participacion_2, "
+"0","              votos_blancos, votos_nulos, votos_candidaturas),"
+"0","    names_to = ""partido"","
+"0","    values_to = ""votos"""
+"0","  ) |> "
+"0","  left_join(filtrado, by = c(""partido"" = ""denominacion"")) |> "
+"0","  mutate(partido = coalesce(siglas, ""OTROS"")) |> "
+"0","  group_by(tipo_eleccion, anno, mes, vuelta, codigo_ccaa, codigo_provincia, codigo_municipio, partido) |> "
+"0","  summarise(votos = sum(votos, na.rm = TRUE), .groups = ""drop"") |>"
+"0","  filter(votos > 0) |>  # Eliminar partidos con 0 votos"
+"0","  filter(across(everything(), ~ !is.na(.))) # Eliminar valores NA"
+"2","Aviso:"
+"2"," [38;5;252mUsing `across()` in `filter()` was deprecated in dplyr 1.0.8.
+[36mℹ[38;5;252m Please use `if_any()` or `if_all()` instead.
+[90mCall `lifecycle::last_lifecycle_warnings()` to see where this warning was generated.[38;5;252m[39m
+"
+"0","# Seleccionar columnas relevantes y ajustar datos"
+"0","datos_elecciones_tidy <- datos_elecciones_tidy |> "
+"0","  select(where(~ n_distinct(.) > 1)) |> # Eliminar columnas constantes"
+"0","  mutate(mes = as.numeric(mes)) # Convertir mes a formato numérico"

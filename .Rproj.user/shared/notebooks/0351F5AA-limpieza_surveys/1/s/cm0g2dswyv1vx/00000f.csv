@@ -1,0 +1,4 @@
+"0","tidy_surveys<- tidy_surveys |> "
+"0","  filter(exit_poll!= TRUE) |> "
+"0","  filter(!is.na(size) & size >= 500)"
+"0","tidy_surveys"
