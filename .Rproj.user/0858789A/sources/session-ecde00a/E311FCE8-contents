@@ -150,13 +150,18 @@ datos_elecciones_tidy <- election_data |>
   ) |> 
   left_join(filtrado, by = c("partido" = "denominacion")) |> 
   mutate(partido = coalesce(siglas, "OTROS")) |> 
-  group_by(tipo_eleccion, anno, mes, vuelta, codigo_ccaa, codigo_provincia, codigo_municipio, partido) |> 
-  summarise(votos = sum(votos, na.rm = TRUE), .groups = "drop") |>
+  group_by(tipo_eleccion, anno, mes, vuelta, codigo_ccaa, codigo_provincia, codigo_municipio, partido, censo) |> 
+  summarise(votos = sum(votos, na.rm = TRUE), .groups = "drop") |> 
   filter(votos > 0) |>  # Eliminar partidos con 0 votos
-  filter(across(everything(), ~ !is.na(.))) # Eliminar valores NA
-
+  filter(across(everything(), ~ !is.na(.))) |>  # Eliminar valores NA
+    mutate(
+    codigo_municipio = glue::glue("{codigo_ccaa}-{codigo_provincia}-{codigo_municipio}")) |> # Crear el nuevo codigo_municipio en formato xx-xx-xxx
+  left_join(cod_mun, by= c("codigo_municipio"="cod_mun")) |>  # Hacer join con cod_mun para agregar el nombre del municipio
+  select(-codigo_ccaa, -codigo_provincia)
+  
 # Seleccionar columnas relevantes y ajustar datos
 datos_elecciones_tidy <- datos_elecciones_tidy |> 
   select(where(~ n_distinct(.) > 1)) |> # Eliminar columnas constantes
   mutate(mes = as.numeric(mes)) # Convertir mes a formato numérico
+
 ```

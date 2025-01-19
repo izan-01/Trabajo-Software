@@ -3,9 +3,9 @@
     "path": "C:/Users/izand/OneDrive/trabajo_sft_Github/Trabajo-Software/scripts/Pregunta_5.qmd",
     "project_path": "scripts/Pregunta_5.qmd",
     "type": "quarto_markdown",
-    "hash": "0",
+    "hash": "625087447",
     "contents": "",
-    "dirty": false,
+    "dirty": true,
     "created": 1737315035972.0,
     "source_on_save": false,
     "relative_order": 4,
@@ -16,7 +16,7 @@
         "Source": "Source",
         "docOutlineVisible": "1",
         "rmdVisualCollapsedChunks": "",
-        "rmdVisualModeLocation": "205:0",
+        "rmdVisualModeLocation": "2425:1085.5999755859375",
         "cursorPosition": "0,0",
         "scrollLine": "0"
     },
@@ -25,7 +25,7 @@
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1737315079215,
+    "last_content_update": 1737316015503,
     "read_only": false,
     "read_only_alternatives": []
 }

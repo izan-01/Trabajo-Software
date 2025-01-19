@@ -84,12 +84,6 @@ calibrated_error_summary <- calibrated_data |>
 
 # Mostrar la tabla de calibración de errores
 print(calibrated_error_summary)
-
-
-
-
-
-
 ```
 
 ## 

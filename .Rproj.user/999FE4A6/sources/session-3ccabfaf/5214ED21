@@ -3,9 +3,9 @@
     "path": "C:/Users/izand/OneDrive/trabajo_sft_Github/Trabajo-Software/presentation/todo.qmd",
     "project_path": "presentation/todo.qmd",
     "type": "quarto_markdown",
-    "hash": "1778523168",
+    "hash": "451305999",
     "contents": "",
-    "dirty": false,
+    "dirty": true,
     "created": 1737311321985.0,
     "source_on_save": false,
     "relative_order": 7,
@@ -15,18 +15,18 @@
         "tempName": "Untitled1",
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "408,0",
+        "cursorPosition": "603,0",
         "scrollLine": "0",
         "docOutlineVisible": "1",
         "rmdVisualCollapsedChunks": "",
-        "rmdVisualModeLocation": "15897:6484"
+        "rmdVisualModeLocation": "23356:10540"
     },
     "folds": "",
     "lastKnownWriteTime": 1737315342,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1737315342423,
+    "last_content_update": 1737315841147,
     "read_only": false,
     "read_only_alternatives": []
 }
