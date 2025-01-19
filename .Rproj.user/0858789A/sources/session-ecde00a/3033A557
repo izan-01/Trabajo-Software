@@ -3,7 +3,7 @@
     "path": "C:/Users/PORTATIL/Desktop/PROYECTO SOFTWARE - GITHUB/Trabajo-Software/scripts/pregunta_adicional_8.qmd",
     "project_path": "scripts/pregunta_adicional_8.qmd",
     "type": "quarto_markdown",
-    "hash": "3667532292",
+    "hash": "3660981607",
     "contents": "",
     "dirty": false,
     "created": 1737293799917.0,
@@ -19,14 +19,14 @@
         "rmdVisualCollapsedChunks": "",
         "cursorPosition": "10,0",
         "scrollLine": "0",
-        "rmdVisualModeLocation": "594:192"
+        "rmdVisualModeLocation": "983:256.79998779296875"
     },
     "folds": "",
-    "lastKnownWriteTime": 1737296381,
+    "lastKnownWriteTime": 1737309837,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1737296381154,
+    "last_content_update": 1737309837483,
     "read_only": false,
     "read_only_alternatives": []
 }

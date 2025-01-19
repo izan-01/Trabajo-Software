@@ -1,4 +1,4 @@
-"0","grafico8 <- porcentajes |> "
+"0","grafico8 <- porcentajes8 |> "
 "0","  ggplot(aes(x = anno, y = porcentaje_votos, color = grupo_partido, group = grupo_partido)) +"
 "0","  geom_line(size = 0.75) +"
 "0","  geom_point(size = 2) +"

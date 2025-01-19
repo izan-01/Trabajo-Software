@@ -19,12 +19,12 @@ partidos_clasificados <- datos_elecciones_tidy |>
   filter(!is.na(grupo_partido) & anno >= 2008 & anno <= 2019)
 
 # Agrupamos por año y grupo de partido. Además, sumamos los votos
-datos_agrupados <- partidos_clasificados |> 
+datos_agrupados8 <- partidos_clasificados |> 
   group_by(anno, grupo_partido) |> 
   summarise(total_votos = sum(votos, na.rm = TRUE), .groups = "drop")
 
 # Calculamos el porcentaje de votos por grupo dentro de cada año
-porcentajes <- datos_agrupados |> 
+porcentajes8 <- datos_agrupados8 |> 
   group_by(anno) |> 
   mutate(porcentaje_votos = (total_votos / sum(total_votos)) * 100) |> 
   ungroup()
@@ -32,7 +32,7 @@ partidos_clasificados
 ```
 
 ```{r}
-grafico8 <- porcentajes |> 
+grafico8 <- porcentajes8 |> 
   ggplot(aes(x = anno, y = porcentaje_votos, color = grupo_partido, group = grupo_partido)) +
   geom_line(size = 0.75) +
   geom_point(size = 2) +

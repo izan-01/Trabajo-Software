@@ -1,0 +1,162 @@
+---
+title: "CLASE 13/12"
+format: html
+editor: visual
+---
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Running Code
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+library(tidyverse)
+load(file = "../software II/SCRIPTS/data_periodismo.rda")
+data_periodismo
+```
+
+1.  que tipo de dato es es una lista a parte de porque lo pone en el enviroment porque en la primera salia pone \$colors_bloques, \$datos_elecciones ....
+
+```{r}
+datos <- data_periodismo$datos_elecciones
+datos
+```
+
+2.  realizar un gráfico de barras con los votos totales de cada partido las elecciones de 2022
+
+-   barras ordenadas de más a menos votos
+-   colorinchis
+
+```{r}
+#el geom_bar solo cuenta cosas, por si lo que quisieramos graficar consistiera en contar columnas pero como aquí queríamos scara los votos por partido había que sumarlo y por tanto y por eso hemos hecho 
+
+#fct_reorder es para ordenador los valores de una variable factor (una variable cualitativa nominal)
+resumen2022 <- 
+  datos |> 
+  filter(year(convocatoria)== "2022") |> 
+  summarise("voto_por_partido" = sum(votos_partido), .by = partido)
+  
+resumen2022
+
+
+
+gg1 <- 
+  ggplot(resumen2022) +
+  geom_col(aes(x = fct_reorder(partido, -voto_por_partido), 
+               y = voto_por_partido, 
+               fill = fct_reorder(partido, -voto_por_partido)), alpha = 0.6) +
+  scale_fill_manual(values = c("blue", "red", "green", "pink", "yellow", "orange", "grey")) +
+  labs( x = "partidos",
+        y = "votos por partido",
+        title = "VOTOS POR PARTIDO", 
+        fill = "Nombre partidos")
+gg1
+
+```
+
+```{r}
+
+resumen <- 
+  datos |> 
+  summarise("voto_por_partido" = sum(votos_partido), .by = c(partido, convocatoria)) 
+  
+resumen 
+
+ggplot(resumen) +
+  geom_col(aes(x = fct_reorder(partido, -voto_por_partido), y = voto_por_partido, fill = fct_reorder(partido, -voto_por_partido)), alpha = 0.6) +
+  labs( x = "partidos",
+        y = "votos por partido",
+        title = "VOTOS POR PARTIDO", 
+        fill = "Nombre partidos") +
+  theme_minimal()+
+   theme(axis.text.x = element_text(angle = 45),
+         legend.position = "bottom") +
+  facet_wrap(~convocatoria)
+  
+
+
+
+```
+
+```{r}
+
+resumen <- 
+  datos |> 
+  summarise("voto_por_partido" = sum(votos_partido), .by = c(partido, convocatoria)) |> 
+  mutate("partido" = factor(partido, levels = c("Cs","UP","PP", "PSOE",  "VOX", "Otros", "AA", "xA" )))
+  
+resumen 
+
+ggplot(resumen) +
+  geom_col(aes(x = fct_reorder(partido, -voto_por_partido), y = voto_por_partido, fill = fct_reorder(partido, -voto_por_partido)), alpha = 0.6) +
+  labs( x = "partidos",
+        y = "votos por partido",
+        title = "VOTOS POR PARTIDO", 
+        fill = "Nombre partidos") +
+  theme_minimal()+
+   theme(axis.text.x = element_text(angle = 45),
+         legend.position = "bottom") +
+  facet_wrap(~convocatoria)
+  
+
+```
+
+SI QUISIERAMOS QUE CADA GRAFICA TUVIERA UN ORDEN, TENDRIAMOS QUE HABER HECHO TRES CONJUNTOS DE DATOS, UNO PARA CADA AÑO Y LUEGO USAR EL PAQUETE **patchwork** PARA UNIR LAS GRAFICAS
+
+```{r}
+library(patchwork)
+gg_2015 + gg_2018 + gg_2022 
+
+```
+
+VAMOS A HACER UN GRAFICO DE MAPAS lo que nos ha sacado mapa_anadalucia
+
+```{r}
+library(mapSpain)
+
+mapa_andalucia <- 
+  mapSpain::esp_get_ccaa(ccaa = "Andalucia")
+
+mapa_andalucia
+
+
+ggplot(mapa_andalucia) +
+  geom_sf()
+
+```
+
+```{r}
+
+mapa_provs <- 
+  mapSpain::esp_get_prov(prov = c("Andalucia", "Comunidad Valenciana", "Madrid"))
+
+ggplot(mapa_provs) +
+  geom_sf()
+
+datos_electorales <- 
+  datos |> 
+  filter(year(convocatoria)==2022) |> 
+  summarise("votos_por_municipio" = sum(votos_partido),
+            .by = c(partido, codigo_mun)) |> 
+  slice_max(votos_por_municipio, n = 1, by = codigo_mun) #estoy extrayendo de cada municipio el partido mas votado
+
+datos_electorales
+
+
+mapa_mun_andalucia <- 
+  mapSpain::esp_get_munic(year = 2019, region = "Andalucia") |> 
+  left_join(datos_electorales, by = c("LAU_CODE" = "codigo_mun")) #hacemos un left join para unir datos de la tabla datos_electorales
+
+gg2 <- ggplot(mapa_mun_andalucia) +
+  geom_sf(aes(fill = partido), alpha = 0.6) +
+  scale_fill_manual(values = c("orange", "blue", "red", "purple")) +
+  theme_minimal()
+  
+gg2
+
+gg2 + gg1
+
+```
