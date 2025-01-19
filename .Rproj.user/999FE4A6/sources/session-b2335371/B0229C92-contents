@@ -6,103 +6,57 @@ editor: visual
 
 ## LIMPIEZA DE DATOS
 
-Fijo el directorio para no tener problemas con los archivos y meto la limpieza de datos para trabajar con las tablas nuevas para responder las preguntas.
-
-```{r}
-setwd('C:/Users/PORTATIL/Desktop/PROYECTO SOFTWARE - GITHUB/Trabajo-Software')
-election_data <- read_csv(file = "data/data/datos_elecciones_brutos.csv")
-cod_mun <- read_csv(file = "data/data/cod_mun.csv")
-surveys <- read_csv(file = "data/data/historical_surveys.csv")
-abbrev <- read_csv(file = "data/data/siglas.csv")
-```
-
 ```{r}
 library(tidyverse)
 library(lubridate)
 library(ggplot2)
 ```
 
-```{r}
-partidos_a_filtrar <- c("PARTIDO SOCIALISTA OBRERO ESPAÑOL", "PSOE", 
-                        "PARTIDO POPULAR", 
-                        "CIUDADANOS", "C'S", 
-                        "PARTIDO NACIONALISTA VASCO", "EAJ-PNV", 
-                        "BLOQUE NACIONALISTA GALLEGO", "BNG", 
-                        "CONVERGÈNCIA I UNIÓ", "CDC", 
-                        "UNIDAS PODEMOS", "IU", "PODEM", "EZKER BATUA", 
-                        "ESQUERRA REPUBLICANA DE CATALUNYA", "ERC", 
-                        "EH - BILDU", "SORTU", "EUSKO ALKARTASUNA", 
-                        "ALTERNATIBA", "ARALAR", 
-                        "MÁS PAÍS", "VOX")
-
-filtrado <- abbrev |> 
-    filter(str_detect(denominacion, str_c(partidos_a_filtrar, collapse = "|"))) |>
-  filter(!denominacion %in% c("PARTIDO DE ASOCIACION DE VIUDAS Y ESPOSAS LEGALES", "CONVERGENCIA CIUDADANA DEL SURESTE", "PARTIU ASTURIANISTA", "CIUDADANOS EN BLANCO", "AGRUPACION CIUDADANA", "INICIATIVA CIUDADANA BURGALESA", "PARTIDO CIUDADANOS UNIDOS DE ARAGON", "UNION CIUDADANA PROGRESISTAS INDEPENDIENTES DE CANARIAS", "CIUDADANOS DE CENTRO DEMOCRÁTICO", "FORO DE CIUDADANOS", "ACCION CIUDADANA POR MALAGA", "UNION DE CIUDADANOS INDEPENDIENTES DE TOLEDO", "CIUDADANOS DE CENTRO DEMOCRATICO-CANDIDATURA INDEP", "EN POSITIU", "JUSTIZIA SOCIAL, PARTICIPACION CIUDADANA", "POBLE LLIURE - SOM ALTERNATIVA - PIRATES DE CATALU", "CIUDADANOS INDEPENDIENTES DE LINARES UNIDOS", "MOVIMIENTO POR LA DIGNIDAD Y LA CIUDADANÍA DE CEUT","CIUDADANOS LIBRES UNIDOS", "CIUDADANOS RURALES AGRUPADOS", "CIUDADANOS DE CENTRO DEMOCRÁTICO-CANDIDATURA INDEP", "JUSTIZIA SOCIAL, PARTICIPACIÓN CIUDADANA"
-))|> 
-  group_by(denominacion) |> 
-  summarise(siglas = first(siglas), .groups = "drop") # Unificar duplicados
-filtrado
-
-tidy_surveys<-
-  surveys |> 
-  pivot_longer(cols = -c(type_survey : turnout), names_to= "partidos",
-               values_to = "count", values_drop_na = TRUE)
-
-tidy_surveys<- tidy_surveys |> 
-  filter(date_elec>= "2008-01-01") |> 
-  select(-type_survey)
-
-tidy_surveys<- tidy_surveys |> 
-  left_join(filtrado, by = c("partidos" = "siglas")) |> 
-  mutate(partido = if_else(partidos %in% filtrado$siglas, partidos, "OTROS")) |> 
-  select(-partidos) |> 
-  relocate(partido, .before = turnout)
-
-tidy_surveys <- tidy_surveys |> 
-  group_by(
-    date_elec,       # Fecha de la elección
-    id_pollster,     # Identificador de la casa encuestadora
-    pollster,        # Nombre de la casa encuestadora
-    media,           # Medio asociado
-    partido         # Partido (incluyendo "OTROS")
-  ) |> 
-  summarise(
-    count = sum(count, na.rm = TRUE),   # Sumar votos por partido
-    field_date_from = first(field_date_from),  # Duración del trabajo de campo (igual para todas las filas de una encuesta)
-    field_date_to = first(field_date_to),
-    exit_poll = first(exit_poll),      # Si es o no encuesta a pie de urna (debe ser igual dentro del grupo)
-    size = first(size),                # Tamaño muestral
-    turnout = first(turnout),          # Participación estimada
-    .groups = "drop"                   # Eliminar niveles de agrupación
-  )
-```
-
-```{r}
-# Transformar datos de elecciones a formato tidy
-datos_elecciones_tidy <- election_data |> 
-  pivot_longer(
-    cols = -c(tipo_eleccion, anno, mes, vuelta, codigo_ccaa, codigo_provincia, codigo_municipio, 
-              codigo_distrito_electoral, numero_mesas, censo, participacion_1, participacion_2, 
-              votos_blancos, votos_nulos, votos_candidaturas),
-    names_to = "partido",
-    values_to = "votos"
-  ) |> 
-  left_join(filtrado, by = c("partido" = "denominacion")) |> 
-  mutate(partido = coalesce(siglas, "OTROS")) |> 
-  group_by(tipo_eleccion, anno, mes, vuelta, codigo_ccaa, codigo_provincia, codigo_municipio, partido) |> 
-  summarise(votos = sum(votos, na.rm = TRUE), .groups = "drop") |>
-  filter(votos > 0) |>  # Eliminar partidos con 0 votos
-  filter(across(everything(), ~ !is.na(.))) # Eliminar valores NA
-
-# Seleccionar columnas relevantes y ajustar datos
-datos_elecciones_tidy <- datos_elecciones_tidy |> 
-  select(where(~ n_distinct(.) > 1)) |> # Eliminar columnas constantes
-  mutate(mes = as.numeric(mes)) # Convertir mes a formato numérico
-```
-
 ## PREGUNTA 1
 
 -   ¿Qué partido fue el ganador en los municipios con más de 100.000 habitantes (censo) en cada una de las elecciones?
+
+```{r}
+# Filtrar los municipios con un censo mayor a 100,000 habitantes
+municipios_grandes <- datos_elecciones_tidy |> 
+  filter(codigo_municipio > 100000) 
+
+# Crear una columna combinada de eleccion (año y mes) para agrupar más fácilmente
+municipios_grandes <- municipios_grandes |> 
+  mutate(eleccion = glue::glue("{anno}-{mes}"))
+
+# Agrupar por eleccion y municipio para calcular el total de votos por municipio
+totales_municipio <- municipios_grandes |> 
+  group_by(eleccion, codigo_municipio) |> 
+  summarise(votos_totales_municipio = sum(votos, na.rm = TRUE), .groups = "drop")
+
+# Agregar el total de votos por municipio a la tabla original
+municipios_grandes <- municipios_grandes |> 
+  left_join(totales_municipio, by = c("eleccion", "codigo_municipio"))
+
+# Calcular el porcentaje de votos para cada partido en cada municipio
+municipios_grandes <- municipios_grandes |> 
+  mutate(porcentaje_votos = (votos / votos_totales_municipio) * 100)
+
+# Agrupar por eleccion, municipio y partido, y sumar los votos
+resumen_votos <- municipios_grandes |> 
+  group_by(eleccion, codigo_municipio, partido) |> 
+  summarise(
+    votos_totales = sum(votos, na.rm = TRUE),
+    porcentaje_votos = sum(porcentaje_votos, na.rm = TRUE), 
+    .groups = "drop"
+  )
+
+# Determinar el partido ganador en cada municipio basado en el porcentaje de votos
+partidos_ganadores <- resumen_votos |> 
+  group_by(eleccion, codigo_municipio) |> 
+  slice_max(porcentaje_votos, n = 1, with_ties = FALSE) |>   # Selecciona el partido con mayor porcentaje de votos
+  ungroup()
+
+# Resultado final: partidos ganadores con sus porcentajes de votos
+partidos_ganadores
+
+```
 
 ```{r}
 # Filtrar los municipios con un censo mayor a 100,000 habitantes
@@ -132,25 +86,21 @@ library(ggplot2)
 
 # Elegimos los colores de cada partido
 colores_partidos <- c(
-  "AMAIUR" = "#ADD8E6",  # Azul claro
-  "C's" = "#FFA500",     # Naranja
-  "EAJ-PNV" = "#006400", # Verde oscuro
-  "ERC-SOBIRAN" = "#D4AF37", # Amarillo mostaza
-  "OTROS" = "#3FC0CA",   # Rosa
-  "PODEMOS" = "#4B0082", # Morado oscuro
-  "PODEMOS-COM" = "#FF00FF", # Fucsia
-  "PODEMOS-EUP" = "#800080", # Morado
-  "PODEMOS-IU-EQUO" = "#8A2BE2", # Violeta
+  "MÁS PAÍS"= "#A3C585",
+  "BNG"= "#6BAED6",
+  "CIUDADANOS" = "#FFA500",     # Naranja
+  "PNV" = "#006400", # Verde oscuro
+  "ERC" = "#D4AF37", # Amarillo mostaza
+  "OTROS" = "#3FC0CA",   
+  "UNIDAS PODEMOS" = "#4B0082", # Morado oscuro
   "PP" = "#0000FF",      # Azul
-  "PP-PAR" = "#00008B",  # Azul oscuro
-  "PSC" = "#8B0000",     # Rojo oscuro
   "PSOE" = "#FF0000",    # Rojo
   "VOX" = "#008000"      # Verde
 )
 
 # Creamos un gráfico de barras agrupadas
-partidos_ganadores %>%
-  ggplot(aes(x = as.factor(codigo_municipio), y = votos_totales, fill = partido)) +
+partidos_ganadores |> 
+  ggplot(aes(x = as.factor(codigo_municipio), y = porcentaje_votos , fill = partido)) +
   geom_bar(stat = "identity", position = position_dodge()) +
   facet_wrap(~ eleccion, scales = "free_x") +
   labs(
@@ -166,6 +116,36 @@ partidos_ganadores %>%
     axis.text.x = element_text(angle = 90, hjust = 1, size = 5),  # Rotación completa con tamaño reducido
     legend.position = "right"  # Leyenda a la derecha
   )
+```
+
+```{r}
+partidos_ganadores |> 
+  ggplot(aes(x = as.factor(codigo_municipio), y = porcentaje_votos, fill = partido)) +
+  geom_bar(stat = "identity", position = position_dodge(width = 0.9), size = 0.3) + # Bordes negros finos para separar las barras
+  facet_wrap(~ eleccion, scales = "free_x") +
+  labs(
+    title = "Partidos Ganadores por Municipio y Elección",
+    subtitle = "Porcentaje de votos por partido en municipios seleccionados",
+    x = "Código de Municipio",
+    y = "Porcentaje de Votos",
+    fill = "Partido"
+  ) +
+  scale_x_discrete(breaks = function(x) x[seq(1, length(x), by = 15)]) +  # Mostrar cada 13 municipios para evitar sobrecarga
+  scale_fill_manual(values = colores_partidos) +
+  theme_minimal(base_size = 12) + # Tamaño base de texto ajustado
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 7), # Rotación vertical con ajuste
+    axis.title.x = element_text(size = 10, face = "bold"),
+    axis.title.y = element_text(size = 10, face = "bold"),
+    strip.text = element_text(size = 10, face = "bold"), # Facetas más claras y en negrita
+    plot.title = element_text(size = 16, face = "bold", hjust = 0.5), # Título centrado y destacado
+    plot.subtitle = element_text(size = 12, hjust = 0.5), # Subtítulo centrado
+    legend.position = "bottom", # Leyenda en la parte inferior para aprovechar el espacio
+    legend.title = element_text(face = "bold"),
+    legend.text = element_text(size = 9)
+  ) +
+  scale_y_continuous(labels = scales::percent_format(scale = 1)) # Mostrar porcentaje en eje Y
+
 ```
 
 ## PREGUNTA 2
@@ -191,14 +171,15 @@ resultados <- resumen_votos |>
 
 # Filtramos los partidos que quedaron en primer y segundo lugar
 primeros_segundos <- resultados |> 
-  filter(ranking <= 2) |> 
+  filter(ranking <= 2) |>
   group_by(eleccion, codigo_municipio) |> 
   pivot_wider(names_from = ranking, values_from = c(partido, votos_totales), names_prefix = "ranking_") |>
   ungroup()
 
 # Filtramos de nuevo según el ganador (PSOE o PP)
 segundos_por_ganador <- primeros_segundos |> 
-  filter(partido_ranking_1 %in% c("PSOE", "PP")) |> 
+  filter(partido_ranking_1 %in% c("PSOE", "PP")) |>
+  filter(!is.na(p))
   group_by(partido_ranking_1, partido_ranking_2) |> 
   summarise(
     veces_segundo = n(),
@@ -209,24 +190,33 @@ segundos_por_ganador <- primeros_segundos |>
 ```
 
 ```{r}
-# Creamos diagrama para cada ganador (PSOE y PP)
+# Ajustar los valores de texto y espacios para evitar cortes
 grafico2 <- segundos_por_ganador |> 
   ggplot(aes(x = "", y = porcentaje, fill = partido_ranking_2)) +
-  geom_bar(stat = "identity", width = 1) +
+  geom_bar(stat = "identity", width = 1, color = "white", size = 0.5) + # Bordes blancos
   coord_polar("y", start = 0) +
   facet_wrap(~ partido_ranking_1, ncol = 2) +
   labs(
     title = "Partidos en Segundo Lugar por Ganador (PSOE vs PP)",
-    fill = "Partido Segundo Lugar",
+    subtitle = "Distribución del segundo lugar según el ganador",
+    fill = "Partido en Segundo Lugar",
     x = NULL,
-    y = NULL ) +
+    y = NULL,
+  ) +
   scale_fill_manual(values = colores_partidos) +  # Aplicar los colores personalizados
-  theme_minimal() +
+  theme_minimal(base_size = 14) + # Tamaño de fuente base
   theme(
+    plot.title = element_text(face = "bold", size = 16, hjust = 0.5), # Título centrado y en negrita
+    plot.subtitle = element_text(size = 12, hjust = 0.5), # Subtítulo centrado
     axis.text.x = element_blank(),
     axis.ticks = element_blank(),
     panel.grid = element_blank(),
-    legend.position = "right")
+    legend.position = "bottom", # Leyenda debajo para más espacio
+    legend.title = element_text(face = "bold", size = 12), # Título de leyenda más grande
+    legend.text = element_text(size = 10), # Texto de leyenda ajustado
+    strip.text = element_text(face = "bold", size = 14) # Texto de facetas en negrita
+  ) +
+  guides(fill = guide_legend(nrow = 2, byrow = TRUE)) # Leyenda en 2 filas para mejor ajuste
 grafico2
 ```
 

@@ -1,14 +1,14 @@
 {
-    "id": "B0229C92",
-    "path": "C:/Users/izand/OneDrive/trabajo_sft_Github/Trabajo-Software/scripts/PREGUNTA-1, 2.qmd",
-    "project_path": "scripts/PREGUNTA-1, 2.qmd",
+    "id": "04C2DDFC",
+    "path": "C:/Users/izand/OneDrive/trabajo_sft_Github/Trabajo-Software/scripts/pregunta_adicional_8.qmd",
+    "project_path": "scripts/pregunta_adicional_8.qmd",
     "type": "quarto_markdown",
     "hash": "0",
     "contents": "",
-    "dirty": true,
-    "created": 1737280286456.0,
+    "dirty": false,
+    "created": 1737298718304.0,
     "source_on_save": false,
-    "relative_order": 8,
+    "relative_order": 11,
     "properties": {
         "rmdVisualMode": "true",
         "rmdVisualWrapConfigured": "true",
@@ -16,16 +16,14 @@
         "Source": "Source",
         "docOutlineVisible": "1",
         "rmdVisualCollapsedChunks": "",
-        "rmdVisualModeLocation": "1429:0",
-        "cursorPosition": "6,0",
-        "scrollLine": "0"
+        "rmdVisualModeLocation": "57:0"
     },
     "folds": "",
-    "lastKnownWriteTime": 1737237743,
+    "lastKnownWriteTime": 1737298709,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1737299058038,
+    "last_content_update": 1737298735702,
     "read_only": false,
     "read_only_alternatives": []
 }
