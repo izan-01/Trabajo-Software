@@ -1,0 +1,87 @@
+---
+title: "pregunta_3"
+format: html
+editor: visual
+---
+
+## PREGUNTA 4
+
+¿Cómo analizar la relación entre censo y voto? ¿Es cierto que determinados partidos ganan en las zonas rurales?
+
+```{r}
+analizar_censo_voto <- function(data, umbral = 10000) {
+  # Clasificar municipios en rurales o urbanos según el umbral
+  data <- data %>%
+    mutate(tipo_zona = ifelse(censo < umbral, "Rural", "Urbano"))
+  
+  # Calcular proporción de votos por partido en cada zona
+  resultados <- data %>%
+    group_by(tipo_zona, partido) %>%
+    summarise(votos_totales = sum(votos, na.rm = TRUE),
+              censo_total = sum(censo, na.rm = TRUE),
+              .groups = "drop") %>%
+    mutate(proporcion_votos = votos_totales / censo_total)
+  
+  # Determinar el partido predominante en cada tipo de zona
+  predominantes <- resultados %>%
+    group_by(tipo_zona) %>%
+    filter(proporcion_votos == max(proporcion_votos)) %>%
+    select(tipo_zona, partido, proporcion_votos)
+  
+  # Devolver el resumen
+  list(
+    resultados = resultados,
+    predominantes = predominantes
+  )
+}
+
+# Aplicamos la función al dataset
+resultados_analisis <- analizar_censo_voto(datos_elecciones_tidy, umbral = 10000)
+
+# Extraemos los datos procesados
+resultados <- resultados_analisis$resultados
+predominantes <- resultados_analisis$predominantes
+
+# Añadimos la clasificación de tipo de zona al dataset original
+datos_eleccion <- datos_elecciones_tidy %>%
+  mutate(tipo_zona = ifelse(censo < 10000, "Rural", "Urbano"))
+```
+
+```{r}
+grafico_rural <- datos_eleccion %>%
+  filter(tipo_zona == "Rural") %>%
+  group_by(codigo_municipio, partido) %>%
+  summarise(censo = first(censo),
+            votos_totales = sum(votos, na.rm = TRUE),
+            .groups = "drop") %>%
+  ggplot(aes(x = censo, y = votos_totales, color = partido)) +
+  geom_point(alpha = 0.6, size = 2) +
+  labs(
+    title = "Relación entre censo y votos por partido (Municipios Rurales)",
+    x = "Censo",
+    y = "Total de votos",
+    color = "Partido"
+  ) +
+  theme_minimal()
+
+# Gráfico para municipios urbanos
+grafico_urbano <- datos_eleccion %>%
+  filter(tipo_zona == "Urbano") %>%
+  group_by(codigo_municipio, partido) %>%
+  summarise(censo = first(censo),
+            votos_totales = sum(votos, na.rm = TRUE),
+            .groups = "drop") %>%
+  ggplot(aes(x = censo, y = votos_totales, color = partido)) +
+  geom_point(alpha = 0.6, size = 2) +
+  labs(
+    title = "Relación entre censo y votos por partido (Municipios Urbanos)",
+    x = "Censo",
+    y = "Total de votos",
+    color = "Partido"
+  ) +
+  theme_minimal()
+
+# Mostrar los gráficos
+print(grafico_rural)
+print(grafico_urbano)
+```
