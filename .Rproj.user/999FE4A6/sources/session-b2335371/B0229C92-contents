@@ -174,7 +174,7 @@ partidos_ganadores %>%
 
 ```{r}
 # Creamos una columna combinada de eleccion (año y mes) para agrupar más fácilmente
-datos_elecciones <- datos_elecciones |> 
+datos_elecciones <- datos_elecciones_tidy |> 
   mutate(eleccion = glue::glue("{anno}-{mes}"))
 
 #Agrupamos por eleccion, municipio y partido, y sumar los votos
@@ -193,7 +193,7 @@ resultados <- resumen_votos |>
 primeros_segundos <- resultados |> 
   filter(ranking <= 2) |> 
   group_by(eleccion, codigo_municipio) |> 
-  pivot_wider(names_from = ranking, values_from = c(partido, votos_totales), names_prefix = "ranking_") %>%
+  pivot_wider(names_from = ranking, values_from = c(partido, votos_totales), names_prefix = "ranking_") |>
   ungroup()
 
 # Filtramos de nuevo según el ganador (PSOE o PP)

@@ -1,0 +1,1 @@
+{"frames":[{"func":"mutate(datos_elecciones, eleccion = glue::glue(\"{anno}-{mes}\"))","file":"","line_number":0,"end_line_number":0,"character_number":0,"end_character_number":0}],"message":"Error: objeto 'datos_elecciones' no encontrado\n"}

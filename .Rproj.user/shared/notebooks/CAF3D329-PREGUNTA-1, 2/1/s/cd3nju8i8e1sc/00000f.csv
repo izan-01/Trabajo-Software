@@ -1,0 +1,5 @@
+"0","# Creamos una columna combinada de eleccion (año y mes) para agrupar más fácilmente"
+"0","datos_elecciones <- datos_elecciones |> "
+"0","  mutate(eleccion = glue::glue(""{anno}-{mes}""))"
+"2","Error: objeto 'datos_elecciones' no encontrado
+"

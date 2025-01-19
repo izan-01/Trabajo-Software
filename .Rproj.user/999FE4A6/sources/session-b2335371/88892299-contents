@@ -1,0 +1,76 @@
+---
+title: "ANÁLISIS ELECCIONES Y ENCUESTAS"
+author: "Alejandro J., YerayB., Jorge P., Victor G. e Izan D."
+format:
+  revealjs:
+    theme: moon
+    transition: fade
+    slide-number: true
+editor: visual
+---
+
+# ÍNDICE
+
+1.  INTRODUCCIÓN
+
+2.  LIMPIEZA DE DATOS
+
+3.  PREGUNTAS CLAVE
+
+4.  RESULTADOS
+
+5.  CONCLUSIONES
+
+------------------------------------------------------------------------
+
+## Introducción
+
+-   Objetivo del proyecto: **Análisis de los datos electorales (2008-2019)**.
+-   Evaluar resultados y precisión de encuestas.
+-   Metodología basada en R y principios de datos limpios (tidyverse).
+
+------------------------------------------------------------------------
+
+## Metodología
+
+### Fuentes de Datos
+
+-   Archivos procesados:
+    -   `datos_elecciones_tidy.csv`
+    -   `tidy_surveys.csv`
+
+### Procesamiento
+
+-   Filtrado de partidos relevantes.
+-   Conversión a formato tidy.
+-   Integración de datos mediante uniones.
+
+------------------------------------------------------------------------
+
+## Preguntas Clave
+
+### Preguntas Respondidas
+
+1.  **Ganador en municipios \>100,000 habitantes.**
+2.  **Segundo lugar cuando el primero es PSOE o PP.**
+3.  **Relación entre censo y voto.**
+
+### Preguntas Originales
+
+1.  ¿Cómo evolucionó la participación en las elecciones?
+2.  ¿Qué partidos tienen mayor representación en zonas rurales?
+3.  ¿Qué encuestadoras fueron más precisas?
+
+------------------------------------------------------------------------
+
+## Resultados
+
+
+
+------------------------------------------------------------------------
+
+## Conclusiones
+
+-   Resumen de hallazgos clave.
+-   Implicaciones electorales basadas en el análisis.
+-   Propuestas para investigaciones futuras.

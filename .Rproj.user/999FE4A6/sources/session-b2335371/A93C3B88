@@ -1,9 +1,9 @@
 {
     "id": "A93C3B88",
-    "path": "C:/Users/izand/OneDrive/trabajo_sft_Github/Trabajo-Software/scripts/limpieza_surveys.qmd",
-    "project_path": "scripts/limpieza_surveys.qmd",
+    "path": "C:/Users/izand/OneDrive/trabajo_sft_Github/Trabajo-Software/scripts/limpiezas.qmd",
+    "project_path": "scripts/limpiezas.qmd",
     "type": "quarto_markdown",
-    "hash": "0",
+    "hash": "2217534468",
     "contents": "",
     "dirty": false,
     "created": 1737229018012.0,
@@ -16,8 +16,8 @@
         "Source": "Source",
         "docOutlineVisible": "1",
         "rmdVisualCollapsedChunks": "",
-        "rmdVisualModeLocation": "63:0",
-        "cursorPosition": "89,0",
+        "rmdVisualModeLocation": "3792:3130.39990234375",
+        "cursorPosition": "122,0",
         "scrollLine": "0"
     },
     "folds": "",
@@ -25,7 +25,7 @@
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1737229221752,
+    "last_content_update": 1737133065,
     "read_only": false,
     "read_only_alternatives": []
 }
