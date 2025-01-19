@@ -1,0 +1,70 @@
+---
+title: "preguntas 5 y 6"
+format: html
+editor: visual
+---
+
+## Pregunta 5 : ¿Cómo calibrar el error de las encuestas?
+
+#Lo primero que vamos a hacer es cargar las librerias necesarias
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(glue)
+library(forcats)
+library(lubridate)
+
+```
+
+```{r}
+
+
+# Agregar votos reales a nivel nacional
+votos_nacionales <- datos_elecciones_tidy |> 
+  group_by(anno, mes, partido) |> 
+  summarise(total_votos = sum(votos, na.rm = TRUE), .groups = "drop") |> 
+  mutate(voto_real_pct = total_votos / sum(total_votos) * 100)
+
+# Preparar tidy_surveys: extraer año y mes de date_elec
+tidy_surveys2 <- tidy_surveys |> 
+  mutate(
+    anno = year(date_elec),
+    mes = month(date_elec)
+  )
+
+# Calcular intención de voto y error calibrado
+calibrated_data <- tidy_surveys2 |> 
+  mutate(
+    encuesta_pct = (count / size) * 100  # Convertir intención de voto a porcentaje
+  ) |> 
+  inner_join(
+    votos_nacionales, 
+    by = c("anno", "mes", "partido")  # Unir por año, mes y partido
+  ) |> 
+  mutate(
+    error_abs = abs(voto_real_pct - encuesta_pct),  # Error absoluto
+    error_calibrado = error_abs / voto_real_pct * 100  # Calibrar error como porcentaje del voto real
+  )
+
+# Promediar el error calibrado por partido
+calibrated_error_summary <- calibrated_data |> 
+  group_by(partido) |> 
+  summarise(
+    avg_error_calibrado = mean(error_calibrado, na.rm = TRUE),
+    max_error_calibrado = max(error_calibrado, na.rm = TRUE),
+    min_error_calibrado = min(error_calibrado, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# Mostrar la tabla de calibración de errores
+print(calibrated_error_summary)
+
+
+
+
+
+
+```
+
+## 

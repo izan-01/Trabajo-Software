@@ -1,0 +1,64 @@
+---
+title: "pregunta 6"
+format: html
+editor: visual
+---
+
+## pregunta 6: ¿Qué casas encuestadoras acertaron más y cuáles se desviaron más de los resultados?
+
+```{r}
+library(dplyr)
+library(lubridate)
+library(lubridate)
+
+perc_surveys <- tidy_surveys |> 
+  mutate(anno = year(date_elec))
+
+# Agregar una columna de porcentaje real de votos en datos_elecciones_tidy
+perc_elecciones <- datos_elecciones_tidy |> 
+  group_by(anno, partido) |> 
+  mutate(perc_real = votos / sum(votos) * 100)
+
+# Preparar tidy_surveys con el porcentaje estimado
+perc_surveys <- perc_surveys |> 
+  mutate(perc_estimado = count / size * 100)
+
+# Unir los datasets
+encuestas_vs_resultados <- perc_surveys |> 
+  inner_join(
+    perc_elecciones,
+    by = c("anno", "partido")
+  ) |> 
+  mutate(
+    error = perc_estimado - perc_real,
+    error_abs = abs(error)
+  )
+
+
+```
+
+```{r}
+library(ggplot2)
+
+precision_por_encuestadora <- encuestas_vs_resultados |> 
+  group_by(pollster) |> 
+  summarise(media_error_abs = mean(error_abs, na.rm = TRUE)) |> 
+  arrange(media_error_abs)
+
+ggplot(precision_por_encuestadora, aes(x = reorder(pollster, media_error_abs), y = media_error_abs)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  coord_flip() +
+  labs(
+    title = "Error Absoluto Promedio por Encuestadora",
+    x = "Casa Encuestadora",
+    y = "Error Absoluto Promedio"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.y = element_text(size = 6) # Reduce el tamaño del texto en el eje Y
+  )
+
+```
+
+```         
+```
