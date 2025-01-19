@@ -4,6 +4,8 @@ format: html
 editor: visual
 ---
 
+PAQUETES NECESATIOS Y DATOS
+
 ```{r}
 rm(list = ls())
 library(tidyverse)
@@ -125,7 +127,7 @@ datos_elecciones_tidy <- datos_elecciones_tidy |>
 
 # PREGUNTAS
 
-## 1
+## PREGUNTA 1
 
 -   ¿Qué partido fue el ganador en los municipios con más de 100.000 habitantes (censo) en cada una de las elecciones?
 
@@ -169,17 +171,19 @@ partidos_ganadores <- resumen_votos |>
 library(ggplot2)
 
 # Elegimos los colores de cada partido
-colores_partidos<- c(
-  "MÁS PAÍS"= "#A3C585",
-  "BNG"= "#6BAED6",
-  "CIUDADANOS" = "#FFA500",     # Naranja
-  "PNV" = "#006400", # Verde oscuro
-  "ERC" = "#D4AF37", # Amarillo mostaza
-  "OTROS" = "#3FC0CA",   
-  "UNIDAS PODEMOS" = "#4B0082", # Morado oscuro
-  "PP" = "#0000FF",      # Azul
-  "PSOE" = "#FF0000",    # Rojo
-  "VOX" = "#008000")
+colores_partidos <- c(
+  "BNG" = "#FF5733", 
+  "CIUDADANOS" = "#FFC300", 
+  "EH-BILDU" = "#DAF7A6", 
+  "ERC" = "#FF33FF", 
+  "MÁS PAÍS" = "#33FF57", 
+  "OTROS" = "#8C8C8C", 
+  "PNV" = "#33DFFF", 
+  "PP" = "#0000FF", 
+  "PSOE" = "#FF0000", 
+  "UNIDAS PODEMOS" = "#800080", 
+  "VOX" = "#008000"
+)
 
 partidos_ganadores |> 
   ggplot(aes(x = as.factor(codigo_municipio), y = porcentaje_votos, fill = partido)) +
@@ -209,7 +213,7 @@ partidos_ganadores |>
   scale_y_continuous(labels = scales::percent_format(scale = 1)) # Mostrar porcentaje en eje Y
 ```
 
-## 2
+## PREGUNTA 2
 
 -   ¿Qué partido fue el segundo cuando el primero fue el PSOE? ¿Y cuando el primero fue el PP?
 
@@ -281,11 +285,184 @@ grafico2 <- segundos_por_ganador |>
 grafico2
 ```
 
-## 3
+## PREGUNTA 3
 
-## 4
+¿A quién beneficia la baja participación?
 
-## 5
+```{r}
+# Calcular la participación por municipio
+participacion_municipio <- datos_elecciones_tidy |> 
+  group_by(codigo_municipio, anno, mes) |>   # Ajustar nombres según los encontrados
+  summarise(
+    total_votos = sum(votos, na.rm = TRUE),
+    censo_total = unique(censo),  # Ajustar si es necesario
+    participacion = total_votos / censo_total * 100,
+    .groups = "drop"
+  )
+
+# Calcular el porcentaje de votos por partido
+votos_por_partido <- datos_elecciones_tidy |> 
+  group_by(codigo_municipio, anno, mes, partido) |> 
+  summarise(
+    total_votos_partido = sum(votos, na.rm = TRUE),
+    .groups = "drop"
+  ) |> 
+  left_join(participacion_municipio, by = c("codigo_municipio", "anno", "mes")) |> 
+  group_by(codigo_municipio, anno, mes) |> 
+  summarise(
+    partido = partido,
+    porcentaje_votos = total_votos_partido / sum(total_votos_partido) * 100,  # Porcentaje por partido
+    participacion = first(participacion),  # Tomar participación calculada previamente
+    .groups = "drop"
+  )
+
+# Calcular el coeficiente de correlación entre participación y porcentaje de votos por partido
+correlacion_por_partido <- votos_por_partido |> 
+  group_by(partido) |> 
+  summarise(
+    correlacion = cor(participacion, porcentaje_votos, use = "complete.obs"),  # Correlación
+    .groups = "drop"
+  )
+
+library(tidyverse)
+library(tidyverse)
+
+# Crear categorías de participación
+votos_por_partido <- votos_por_partido |> 
+  mutate(
+    nivel_participacion = case_when(
+      participacion < 50 ~ "Baja",
+      participacion >= 50 & participacion < 70 ~ "Media",
+      participacion >= 70 ~ "Alta"
+    )
+  )
+
+# Promediar votos por nivel de participación y partido
+votos_niveles <- votos_por_partido |> 
+  group_by(nivel_participacion, partido) |> 
+  summarise(
+    promedio_votos = mean(porcentaje_votos, na.rm = TRUE),
+    .groups = "drop"
+  )
+```
+
+```{r}
+# Definir colores distinguibles para cada partido
+colores_partidos <- c(
+  "BNG" = "#FF5733", 
+  "CIUDADANOS" = "#FFC300", 
+  "EH-BILDU" = "#DAF7A6", 
+  "ERC" = "#FF33FF", 
+  "MÁS PAÍS" = "#33FF57", 
+  "OTROS" = "#8C8C8C", 
+  "PNV" = "#33DFFF", 
+  "PP" = "#0000FF", 
+  "PSOE" = "#FF0000", 
+  "UNIDAS PODEMOS" = "#800080", 
+  "VOX" = "#008000"
+)
+
+# Gráfico mejorado sin etiquetas numéricas
+ggplot(votos_niveles, aes(x = nivel_participacion, y = promedio_votos, group = partido, color = partido)) +
+  geom_line(size = 1.2) +  # Líneas más gruesas
+  geom_point(size = 3) +  # Puntos más visibles
+  scale_color_manual(values = colores_partidos) +  # Aplicar colores definidos
+  labs(
+    title = "Porcentaje de Votos por Partido según Nivel de Participación",
+    x = "Nivel de Participación",
+    y = "Porcentaje de Votos (%)",
+    color = "Partido"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 12, face = "bold", hjust = 0.5),
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 10),
+    axis.title = element_text(size = 12),
+    axis.text = element_text(size = 10)
+  )
+```
+
+## PREGUNTA 4
+
+¿Cómo analizar la relación entre censo y voto? ¿Es cierto que determinados partidos ganan en las zonas rurales?
+
+```{r}
+analizar_censo_voto <- function(data, umbral = 10000) {
+  # Clasificar municipios en rurales o urbanos según el umbral
+  data <- data |> 
+    mutate(tipo_zona = ifelse(censo < umbral, "Rural", "Urbano"))
+  
+  # Calcular proporción de votos por partido en cada zona
+  resultados <- data |> 
+    group_by(tipo_zona, partido) |> 
+    summarise(votos_totales = sum(votos, na.rm = TRUE),
+              censo_total = sum(censo, na.rm = TRUE),
+              .groups = "drop") |> 
+    mutate(proporcion_votos = votos_totales / censo_total)
+  
+  # Determinar el partido predominante en cada tipo de zona
+  predominantes <- resultados |> 
+    group_by(tipo_zona) |> 
+    filter(proporcion_votos == max(proporcion_votos)) |> 
+    select(tipo_zona, partido, proporcion_votos)
+  
+  # Devolver el resumen
+  list(
+    resultados = resultados,
+    predominantes = predominantes
+  )
+}
+
+# Aplicamos la función al dataset
+resultados_analisis <- analizar_censo_voto(datos_elecciones_tidy, umbral = 10000)
+
+# Extraemos los datos procesados
+resultados <- resultados_analisis$resultados
+predominantes <- resultados_analisis$predominantes
+
+# Añadimos la clasificación de tipo de zona al dataset original
+datos_eleccion <- datos_elecciones_tidy |> 
+  mutate(tipo_zona = ifelse(censo < 10000, "Rural", "Urbano"))
+```
+
+```{r}
+grafico_rural <- datos_eleccion |> 
+  filter(tipo_zona == "Rural") |> 
+  group_by(codigo_municipio, partido) |> 
+  summarise(censo = first(censo),
+            votos_totales = sum(votos, na.rm = TRUE),
+            .groups = "drop") |> 
+  ggplot(aes(x = censo, y = votos_totales, color = colores_partidos)) +
+  geom_point(alpha = 0.6, size = 2) +
+  labs(
+    title = "Relación entre censo y votos por partido (Municipios Rurales)",
+    x = "Censo",
+    y = "Total de votos",
+    color = "Partido"
+  ) +
+  theme_minimal()
+```
+
+```{r}
+grafico_urbano <- datos_eleccion |> 
+  filter(tipo_zona == "Urbano") |> 
+  group_by(codigo_municipio, partido) % |> 
+  summarise(censo = first(censo),
+            votos_totales = sum(votos, na.rm = TRUE),
+            .groups = "drop") |> 
+  ggplot(aes(x = censo, y = votos_totales, color = colores_partidos)) +
+  geom_point(alpha = 0.6, size = 2) +
+  labs(
+    title = "Relación entre censo y votos por partido (Municipios Urbanos)",
+    x = "Censo",
+    y = "Total de votos",
+    color = "Partido"
+  ) +
+  theme_minimal()
+```
+
+## PREGUNTA 5
 
 ¿Cómo calibrar el error de las encuestas?
 
@@ -353,7 +530,7 @@ calibrated_error_summary <- calibrated_data |>
 print(calibrated_error_summary)
 ```
 
-## 6
+## PREGUNTA 6
 
 ¿Qué casas encuestadoras acertaron más y cuáles se desviaron más de los resultados?
 
@@ -426,7 +603,7 @@ ggplot(precision_por_encuestadora, aes(x = reorder(pollster, media_error_abs), y
   )
 ```
 
-## 7
+## PREGUNTA 7
 
 ¿Existe una relación entre la precisión de las encuestas y el tiempo de trabajo de campo (días de recogida de datos)?
 
@@ -478,7 +655,7 @@ ggplot(resumen_error, aes(x = duration_days, y = error_avg)) +
   scale_x_continuous(breaks = seq(0, max(resumen_error$duration_days, na.rm = TRUE), by = 5))
 ```
 
-## 8
+## PREGUNTA 8
 
 ¿Cómo evolucionaron las preferencias hacia los partidos nacionalistas/regionalistas en comparación con los partidos nacionales durante el período 2008-2019?
 
@@ -527,7 +704,7 @@ grafico8 <- porcentajes |>
 grafico8
 ```
 
-## 9
+## PREGUNTA 9
 
 ¿Cómo evolucionó la proporción de votos hacia partidos emergentes como Podemos y Vox desde su aparición hasta las últimas elecciones? ¿Qué provincias votaron más a Podemosen las elecciones de 2019? ¿Y a Vox?
 

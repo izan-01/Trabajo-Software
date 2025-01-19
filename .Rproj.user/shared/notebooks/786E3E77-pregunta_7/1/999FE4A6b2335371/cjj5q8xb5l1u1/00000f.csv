@@ -1,0 +1,22 @@
+"0","# Calcular el error de la encuesta"
+"0","# Unir con los resultados electorales para obtener la diferencia"
+"0","encuestas_con_resultados <- tidy_surveys |>"
+"0","  inner_join(datos_elecciones_tidy, by = c(""partido"" = ""partido"")) |>"
+"0","  mutate("
+"0","    error = abs(count - votos) / votos * 100, # Calcular error porcentual"
+"0","    duration_days = field_duration"
+"0","  )"
+"2","Aviso en inner_join(tidy_surveys, datos_elecciones_tidy, by = c(partido = ""partido"")) :"
+"2","
+ "
+"2"," [38;5;252mDetected an unexpected many-to-many relationship between `x` and `y`.
+[36mℹ[38;5;252m Row 1 of `x` matches multiple rows in `y`.
+[36mℹ[38;5;252m Row 1 of `y` matches multiple rows in `x`.
+[36mℹ[38;5;252m If a many-to-many relationship is expected, set `relationship = ""many-to-many""` to silence this warning.[39m
+"
+"0","# Agrupar las encuestas por duración de días y calcular el error promedio"
+"0","resumen_error <- encuestas_con_resultados |>"
+"0","  group_by(duration_days) |>"
+"0","  summarise(error_avg = mean(error, na.rm = TRUE))"
+"0",""
+"0",""

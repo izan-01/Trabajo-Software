@@ -1,0 +1,109 @@
+---
+title: "pregunta 3"
+format: html
+editor: visual
+---
+
+## Pregunta 3 ¿A quién beneficia la baja participación?
+
+```{r}
+library(tidyverse)
+
+
+
+# Calcular la participación por municipio
+participacion_municipio <- datos_elecciones_tidy |> 
+  group_by(codigo_municipio, anno, mes) |>   # Ajustar nombres según los encontrados
+  summarise(
+    total_votos = sum(votos, na.rm = TRUE),
+    censo_total = unique(censo),  # Ajustar si es necesario
+    participacion = total_votos / censo_total * 100,
+    .groups = "drop"
+  )
+
+# Calcular el porcentaje de votos por partido
+votos_por_partido <- datos_elecciones_tidy |> 
+  group_by(codigo_municipio, anno, mes, partido) |> 
+  summarise(
+    total_votos_partido = sum(votos, na.rm = TRUE),
+    .groups = "drop"
+  ) |> 
+  left_join(participacion_municipio, by = c("codigo_municipio", "anno", "mes")) |> 
+  group_by(codigo_municipio, anno, mes) |> 
+  summarise(
+    partido = partido,
+    porcentaje_votos = total_votos_partido / sum(total_votos_partido) * 100,  # Porcentaje por partido
+    participacion = first(participacion),  # Tomar participación calculada previamente
+    .groups = "drop"
+  )
+
+# Calcular el coeficiente de correlación entre participación y porcentaje de votos por partido
+correlacion_por_partido <- votos_por_partido |> 
+  group_by(partido) |> 
+  summarise(
+    correlacion = cor(participacion, porcentaje_votos, use = "complete.obs"),  # Correlación
+    .groups = "drop"
+  )
+
+library(tidyverse)
+library(tidyverse)
+
+# Crear categorías de participación
+votos_por_partido <- votos_por_partido |> 
+  mutate(
+    nivel_participacion = case_when(
+      participacion < 50 ~ "Baja",
+      participacion >= 50 & participacion < 70 ~ "Media",
+      participacion >= 70 ~ "Alta"
+    )
+  )
+
+# Promediar votos por nivel de participación y partido
+votos_niveles <- votos_por_partido |> 
+  group_by(nivel_participacion, partido) |> 
+  summarise(
+    promedio_votos = mean(porcentaje_votos, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# Definir colores distinguibles para cada partido
+colores_partidos <- c(
+  "BNG" = "#FF5733", 
+  "CIUDADANOS" = "#FFC300", 
+  "EH-BILDU" = "#DAF7A6", 
+  "ERC" = "#FF33FF", 
+  "MÁS PAÍS" = "#33FF57", 
+  "OTROS" = "#8C8C8C", 
+  "PNV" = "#33DFFF", 
+  "PP" = "#0000FF", 
+  "PSOE" = "#FF0000", 
+  "UNIDAS PODEMOS" = "#800080", 
+  "VOX" = "#008000"
+)
+
+# Gráfico mejorado sin etiquetas numéricas
+ggplot(votos_niveles, aes(x = nivel_participacion, y = promedio_votos, group = partido, color = partido)) +
+  geom_line(size = 1.2) +  # Líneas más gruesas
+  geom_point(size = 3) +  # Puntos más visibles
+  scale_color_manual(values = colores_partidos) +  # Aplicar colores definidos
+  labs(
+    title = "Porcentaje de Votos por Partido según Nivel de Participación",
+    x = "Nivel de Participación",
+    y = "Porcentaje de Votos (%)",
+    color = "Partido"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 12, face = "bold", hjust = 0.5),
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 10),
+    axis.title = element_text(size = 12),
+    axis.text = element_text(size = 10)
+  )
+
+
+
+
+
+
+```

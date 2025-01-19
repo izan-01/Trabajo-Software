@@ -16,15 +16,20 @@
 "0",""
 "0","# Filtramos los partidos que quedaron en primer y segundo lugar"
 "0","primeros_segundos <- resultados |> "
+<<<<<<< Updated upstream:.Rproj.user/shared/notebooks/CAF3D329-PREGUNTA-1, 2/1/s/cwyj0hydogwxv/000015.csv
 "0","  filter(ranking <= 2) |> "
 "0","  filter(!is.na(partido)) |> "
+=======
+"0","  filter(ranking <= 2) |>"
+>>>>>>> Stashed changes:.Rproj.user/shared/notebooks/CAF3D329-PREGUNTA-1, 2/1/999FE4A6b2335371/cd3nju8i8e1sc/000011.csv
 "0","  group_by(eleccion, codigo_municipio) |> "
-"0","  pivot_wider(names_from = ranking, values_from = c(partido, votos_totales), names_prefix = ""ranking_"") %>%"
+"0","  pivot_wider(names_from = ranking, values_from = c(partido, votos_totales), names_prefix = ""ranking_"") |>"
 "0","  ungroup()"
 "0",""
 "0","# Filtramos de nuevo según el ganador (PSOE o PP)"
 "0","segundos_por_ganador <- primeros_segundos |> "
-"0","  filter(partido_ranking_1 %in% c(""PSOE"", ""PP"")) |> "
+"0","  filter(partido_ranking_1 %in% c(""PSOE"", ""PP"")) |>"
+"0","  filter(!is.na(partido_ranking_2)) |> "
 "0","  group_by(partido_ranking_1, partido_ranking_2) |> "
 "0","  summarise("
 "0","    veces_segundo = n(),"

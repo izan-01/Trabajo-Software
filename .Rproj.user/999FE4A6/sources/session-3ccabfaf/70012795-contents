@@ -1,0 +1,109 @@
+---
+title: "Pregunta 4"
+format: html
+editor: visual
+---
+
+```{r}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+# Paso 1: Agrupar partidos relevantes y OTROS
+# Limitar a los partidos con más votos y agrupar el resto como "OTROS"
+datos <- datos_elecciones_tidy %>%
+  left_join(filtrado, by = c("partido" = "siglas")) %>%
+  mutate(
+    partido_grupo = case_when(
+      partido %in% c("PP", "PSOE", "VOX", "UNIDAS PODEMOS") ~ partido,
+      TRUE ~ "OTROS"  # Agrupar todo lo demás como OTROS
+    )
+  )
+
+# Paso 2: Calcular el tamaño del censo por municipio
+datos <- datos %>%
+  group_by(codigo_municipio) %>%
+  mutate(
+    censo = sum(votos, na.rm = TRUE)  # Sumar votos por municipio como proxy del censo
+  ) %>%
+  ungroup()
+
+# Paso 3: Dividir el censo en tramos
+datos <- datos %>%
+  mutate(tramo_censo = cut(
+    censo,
+    breaks = c(0, 10000, 50000, 200000, Inf),
+    labels = c("0-10k", "10k-50k", "50k-200k", ">200k"),
+    include.lowest = TRUE
+  ))
+
+# Paso 4: Calcular proporciones de votos por partido en cada tramo de censo
+distribucion_votos <- datos %>%
+  group_by(tramo_censo, partido_grupo) %>%
+  summarise(
+    votos_totales = sum(votos, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  group_by(tramo_censo) %>%
+  mutate(
+    proporcion = votos_totales / sum(votos_totales)  # Calcular proporciones
+  )
+
+# Verificar distribución
+print("Distribución de votos:")
+print(distribucion_votos)
+
+# Paso 5: Crear el gráfico
+ggplot(distribucion_votos, aes(x = tramo_censo, y = proporcion, fill = partido_grupo)) +
+  geom_bar(stat = "identity", position = "fill") +
+  labs(
+    title = "Distribución de votos por partido según el tamaño del censo",
+    x = "Tramo de Censo (habitantes)",
+    y = "Proporción de Votos",
+    fill = "Partido"
+  ) +
+  scale_fill_manual(
+    values = c("PP" = "blue", "PSOE" = "red", "VOX" = "green", "UNIDAS PODEMOS" = "purple", "OTROS" = "gray")
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
+```{r}
+# Paso 1: Filtrar y ordenar los partidos por votos totales
+partidos_rurales_sin_otros <- distribucion_votos %>%
+  filter(partido_grupo != "OTROS") %>%  # Excluir la categoría "OTROS"
+  group_by(partido_grupo) %>%  # Agrupar por partido
+  summarise(
+    votos_totales = sum(votos_totales, na.rm = TRUE),  # Sumar los votos totales
+    .groups = "drop"
+  ) %>%
+  arrange(desc(votos_totales))  # Ordenar de mayor a menor votos
+
+# Paso 2: Seleccionar los 4 partidos más votados
+top_partidos_rurales <- partidos_rurales_sin_otros %>%
+  slice(1:4)  # Seleccionar los 4 partidos con más votos
+
+# Paso 3: Crear el gráfico de barras
+ggplot(top_partidos_rurales, aes(x = reorder(partido_grupo, -votos_totales), y = votos_totales, fill = partido_grupo)) +
+  geom_bar(stat = "identity", color = "black", size = 0.3) +
+  coord_flip() +  # Rotar el gráfico para facilitar la lectura
+  labs(
+    title = "Top 4 Partidos Más Votados en Zonas Rurales Según Número de Votos",
+    x = "Partidos",
+    y = "Votos Totales",
+    fill = "Partido"
+  ) +
+  scale_y_continuous(labels = scales::comma) +  # Formato con comas
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 16, face = "bold", hjust = 0.5, margin = margin(t = 20, b = 20)),  # Ajustar márgenes del título
+    axis.title.x = element_text(size = 12, face = "bold"),
+    axis.title.y = element_text(size = 12, face = "bold"),
+    axis.text.x = element_text(size = 10),
+    axis.text.y = element_text(size = 10),
+    legend.position = "none"  # Ocultar la leyenda
+  )
+
+```

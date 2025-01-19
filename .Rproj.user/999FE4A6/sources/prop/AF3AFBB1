@@ -4,9 +4,17 @@
     "tempName": "Untitled1",
     "source_window_id": "",
     "Source": "Source",
+<<<<<<< Updated upstream
     "cursorPosition": "38,0",
     "scrollLine": "0",
     "docOutlineVisible": "1",
     "rmdVisualCollapsedChunks": "",
     "rmdVisualModeLocation": "1012:0"
+=======
+    "cursorPosition": "57,0",
+    "scrollLine": "0",
+    "docOutlineVisible": "1",
+    "rmdVisualCollapsedChunks": "",
+    "rmdVisualModeLocation": "2735:0"
+>>>>>>> Stashed changes
 }

@@ -1,0 +1,88 @@
+---
+title: "pregunta 6"
+format: html
+editor: visual
+---
+
+## pregunta 6: ¿Qué casas encuestadoras acertaron más y cuáles se desviaron más de los resultados?
+
+```{r}
+library(dplyr)
+library(lubridate)
+library(lubridate)
+
+# Resumir los votos reales a nivel nacional
+votos_resumidos <- datos_elecciones_tidy |> 
+  group_by(anno, mes, partido) |> 
+  summarise(
+    total_votos = sum(votos, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  group_by(anno, mes) |> 
+  mutate(
+    voto_real_pct = total_votos / sum(total_votos) * 100  # Porcentaje de votos por partido
+  ) |> 
+  ungroup()
+
+# Resumir intención de voto por encuesta
+encuestas_resumidas <- tidy_surveys |> 
+  mutate(
+    anno = year(date_elec),
+    mes = month(date_elec)
+  ) |> 
+  group_by(anno, mes, partido) |> 
+  summarise(
+    encuesta_pct = sum(count, na.rm = TRUE) / sum(size, na.rm = TRUE) * 100,  # Porcentaje de intención de voto
+    .groups = "drop"
+  )
+
+# Calcular el error sin realizar joins
+errores_calibrados <- votos_resumidos |> 
+  left_join(encuestas_resumidas, by = c("anno", "mes", "partido")) |> 
+  filter(!is.na(encuesta_pct)) |>  # Filtrar partidos que tienen datos en ambas tablas
+  summarise(
+    partido = partido,
+    anno = anno,
+    mes = mes,
+    error_abs = abs(voto_real_pct - encuesta_pct),  # Error absoluto
+    error_calibrado = abs(voto_real_pct - encuesta_pct) / voto_real_pct * 100  # Error calibrado
+  )
+
+# Resumir el error calibrado por partido
+resumen_errores <- errores_calibrados |> 
+  group_by(partido) |> 
+  summarise(
+    avg_error_calibrado = mean(error_calibrado, na.rm = TRUE),
+    max_error_calibrado = max(error_calibrado, na.rm = TRUE),
+    min_error_calibrado = min(error_calibrado, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+
+```
+
+```{r}
+library(ggplot2)
+
+precision_por_encuestadora <- encuestas_vs_resultados |> 
+  group_by(pollster) |> 
+  summarise(media_error_abs = mean(error_abs, na.rm = TRUE)) |> 
+  arrange(media_error_abs)
+
+ggplot(precision_por_encuestadora, aes(x = reorder(pollster, media_error_abs), y = media_error_abs)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  coord_flip() +
+  labs(
+    title = "Error Absoluto Promedio por Encuestadora",
+    x = "Casa Encuestadora",
+    y = "Error Absoluto Promedio"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.y = element_text(size = 6) # Reduce el tamaño del texto en el eje Y
+  )
+
+```
+
+```         
+```
