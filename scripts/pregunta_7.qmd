@@ -1,0 +1,46 @@
+---
+title: "pregunta 7"
+format: html
+editor: visual
+---
+
+## PREGUNTA 7
+
+¿Existe una relación entre la precisión de las encuestas y el tiempo de trabajo de campo (días de recogida de datos)?
+
+Analizar si encuestas con más días de trabajo tienden a tener menor error en comparación con aquellas realizadas en menor tiempo.
+
+```{r}
+library(glue)
+```
+
+```{r}
+# Calcular el error de la encuesta
+# Unir con los resultados electorales para obtener la diferencia
+encuestas_con_resultados <- tidy_surveys |>
+  inner_join(datos_elecciones_tidy, by = c("partido" = "partido")) |>
+  mutate(
+    error = abs(count - votos) / votos * 100, # Calcular error porcentual
+    duration_days = field_duration
+  )
+
+# Agrupar las encuestas por duración de días y calcular el error promedio
+resumen_error <- encuestas_con_resultados |>
+  group_by(duration_days) |>
+  summarise(error_avg = mean(error, na.rm = TRUE))
+
+
+```
+
+```{r}
+# Visualizar la relación entre días de trabajo y error promedio
+ggplot(resumen_error, aes(x = duration_days, y = error_avg)) +
+  geom_line() +
+  geom_point() +
+  labs(
+    title = glue("Relación entre duración del trabajo de campo y precisión ({min(as.numeric(substr(tidy_surveys$date_elec, 1, 4)))}-{max(as.numeric(substr(tidy_surveys$date_elec, 1, 4)))})"),
+    x = "Días de trabajo de campo",
+    y = "Error promedio (%)"
+  ) +
+  theme_minimal()
+```

@@ -1,0 +1,3 @@
+
+setwd("C:/Users/PORTATIL/Desktop")
+write.csv(datos_elecciones_tidy, "datos_elecciones_tidy.csv")
