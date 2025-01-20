@@ -5,28 +5,32 @@
     "type": "quarto_markdown",
     "hash": "0",
     "contents": "",
-    "dirty": false,
+    "dirty": true,
     "created": 1737229527456.0,
     "source_on_save": false,
-    "relative_order": 6,
+    "relative_order": 9,
     "properties": {
         "rmdVisualMode": "true",
         "rmdVisualWrapConfigured": "true",
         "tempName": "Untitled1",
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "34,0",
+        "cursorPosition": "57,0",
         "scrollLine": "0",
         "docOutlineVisible": "1",
         "rmdVisualCollapsedChunks": "",
+<<<<<<< Updated upstream
+        "rmdVisualModeLocation": "883:0"
+=======
         "rmdVisualModeLocation": "2735:0"
+>>>>>>> Stashed changes
     },
     "folds": "",
     "lastKnownWriteTime": 1737280278,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1737280278535,
+    "last_content_update": 1737297997151,
     "read_only": false,
     "read_only_alternatives": []
 }

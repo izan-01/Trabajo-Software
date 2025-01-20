@@ -3,7 +3,7 @@
     "path": "C:/Users/izand/OneDrive/trabajo_sft_Github/Trabajo-Software/scripts/limpiezas.qmd",
     "project_path": "scripts/limpiezas.qmd",
     "type": "quarto_markdown",
-    "hash": "2697244738",
+    "hash": "0",
     "contents": "",
     "dirty": false,
     "created": 1737229018012.0,
@@ -16,8 +16,13 @@
         "Source": "Source",
         "docOutlineVisible": "1",
         "rmdVisualCollapsedChunks": "",
-        "rmdVisualModeLocation": "4078:4082.39990234375",
+<<<<<<< Updated upstream
+        "rmdVisualModeLocation": "4078:0",
         "cursorPosition": "130,0",
+=======
+        "rmdVisualModeLocation": "2807:0",
+        "cursorPosition": "94,0",
+>>>>>>> Stashed changes
         "scrollLine": "0"
     },
     "folds": "",

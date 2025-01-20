@@ -3,12 +3,12 @@
     "path": "C:/Users/izand/OneDrive/trabajo_sft_Github/Trabajo-Software/scripts/PREGUNTA-1, 2.qmd",
     "project_path": "scripts/PREGUNTA-1, 2.qmd",
     "type": "quarto_markdown",
-    "hash": "0",
+    "hash": "765540663",
     "contents": "",
     "dirty": true,
     "created": 1737280286456.0,
     "source_on_save": false,
-    "relative_order": 8,
+    "relative_order": 10,
     "properties": {
         "rmdVisualMode": "true",
         "rmdVisualWrapConfigured": "true",
@@ -16,8 +16,13 @@
         "Source": "Source",
         "docOutlineVisible": "1",
         "rmdVisualCollapsedChunks": "",
-        "rmdVisualModeLocation": "1429:0",
-        "cursorPosition": "6,0",
+<<<<<<< Updated upstream
+        "rmdVisualModeLocation": "7866:0",
+        "cursorPosition": "130,0",
+=======
+        "rmdVisualModeLocation": "9270:4263.2001953125",
+        "cursorPosition": "208,0",
+>>>>>>> Stashed changes
         "scrollLine": "0"
     },
     "folds": "",
@@ -25,7 +30,11 @@
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1737299058038,
+<<<<<<< Updated upstream
+    "last_content_update": 1737303650314,
+=======
+    "last_content_update": 1737298247543,
+>>>>>>> Stashed changes
     "read_only": false,
     "read_only_alternatives": []
 }

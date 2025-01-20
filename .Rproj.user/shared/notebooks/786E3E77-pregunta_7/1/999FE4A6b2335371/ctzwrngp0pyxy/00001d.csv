@@ -1,0 +1,12 @@
+"0","# Visualizar la relación entre días de trabajo y error promedio"
+"0","ggplot(resumen_error, aes(x = duration_days, y = error_avg)) +"
+"0","  geom_line() +"
+"0","  geom_point() +"
+"0","  labs("
+"0","    title = glue(""Relación entre duración del trabajo de campo y precisión ({min(as.numeric(substr(tidy_surveys$date_elec, 1, 4)))}-{max(as.numeric(substr(tidy_surveys$date_elec, 1, 4)))})""),"
+"0","    x = ""Días de trabajo de campo"","
+"0","    y = ""Error promedio (%)"""
+"0","  ) +"
+"0","  theme_minimal()"
+"1","[38;5;252mDon't know how to automatically pick scale for object of type [34m<difftime>[38;5;252m. Defaulting to continuous.[39m
+"

@@ -19,7 +19,49 @@ library(ggplot2)
 ```{r}
 # Filtrar los municipios con un censo mayor a 100,000 habitantes
 municipios_grandes <- datos_elecciones_tidy |> 
-  filter(codigo_municipio > 100000) 
+  filter(censo > 100000) 
+
+# Crear una columna combinada de eleccion (año y mes) para agrupar más fácilmente
+municipios_grandes <- municipios_grandes |> 
+  mutate(eleccion = glue::glue("{anno}-{mes}"))
+
+# Agrupar por eleccion y municipio para calcular el total de votos por municipio
+totales_municipio <- municipios_grandes |> 
+  group_by(eleccion, codigo_municipio) |> 
+  summarise(votos_totales_municipio = sum(votos, na.rm = TRUE), .groups = "drop")
+
+# Agregar el total de votos por municipio a la tabla original
+municipios_grandes <- municipios_grandes |> 
+  left_join(totales_municipio, by = c("eleccion", "codigo_municipio"))
+
+# Calcular el porcentaje de votos para cada partido en cada municipio
+municipios_grandes <- municipios_grandes |> 
+  mutate(porcentaje_votos = (votos / votos_totales_municipio) * 100)
+
+# Agrupar por eleccion, municipio y partido, y sumar los votos
+resumen_votos <- municipios_grandes |> 
+  group_by(eleccion, codigo_municipio,municipio, partido) |> 
+  summarise(
+    votos_totales = sum(votos, na.rm = TRUE),
+    porcentaje_votos = sum(porcentaje_votos, na.rm = TRUE), 
+    .groups = "drop"
+  )
+
+# Determinar el partido ganador en cada municipio basado en el porcentaje de votos
+partidos_ganadores <- resumen_votos |> 
+  group_by(eleccion, codigo_municipio, municipio) |> 
+  slice_max(porcentaje_votos, n = 1, with_ties = FALSE) |>   # Selecciona el partido con mayor porcentaje de votos
+  ungroup()
+
+# Resultado final: partidos ganadores con sus porcentajes de votos
+partidos_ganadores
+
+```
+
+```{r}
+# Filtrar los municipios con un censo mayor a 100,000 habitantes
+municipios_grandes <- datos_elecciones_tidy |> 
+  filter(censo > 100000) 
 
 # Crear una columna combinada de eleccion (año y mes) para agrupar más fácilmente
 municipios_grandes <- municipios_grandes |> 
@@ -70,7 +112,7 @@ municipios_grandes <- municipios_grandes |>
 
 # Agrupamos por eleccion, municipio y partido, y sumamos los votos
 resumen_votos <- municipios_grandes |> 
-  group_by(eleccion, codigo_municipio, partido) |> 
+  group_by(eleccion, codigo_municipio, partido, municipio,censo) |> 
   summarise(votos_totales = sum(votos, na.rm = TRUE), .groups = "drop")
 
 # Determinamos el partido ganador en cada municipio para cada eleccion
@@ -100,22 +142,67 @@ colores_partidos <- c(
 
 # Creamos un gráfico de barras agrupadas
 partidos_ganadores |> 
+<<<<<<< Updated upstream
+  ggplot(aes(x = reorder(municipio, porcentaje_votos), y = porcentaje_votos, fill = partido)) +
+  geom_bar(stat = "identity", position = position_dodge(), size = 0.3) + # Bordes para separar las barras
+  facet_wrap(~ eleccion, scales = "free_x", ncol = 2) + # Dividir en dos columnas para más espacio
+  labs(
+    title = "Partidos Ganadores por Municipio y Elección",
+    subtitle = "Porcentaje de votos por partido en municipios seleccionados",
+    x = "Municipio",
+    y = "Porcentaje de Votos",
+    fill = "Partido"
+  ) +
+  scale_fill_manual(values = colores_partidos) +
+  theme_minimal(base_size = 12) + # Aumentar el tamaño base del texto
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 1, size = 7), # Rotar etiquetas del eje X y ajustar tamaño
+    axis.title.x = element_text(size = 10, face = "bold"),
+    axis.title.y = element_text(size = 10, face = "bold"),
+    strip.text = element_text(size = 10, face = "bold"), # Etiquetas de las facetas más claras
+    plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(size = 12, hjust = 0.5),
+    legend.position = "bottom", # Mover leyenda a la parte inferior
+    legend.title = element_text(face = "bold"),
+    legend.text = element_text(size = 9)
+  ) +
+  scale_y_continuous(labels = scales::percent_format(scale = 1)) + # Formato de porcentaje en eje Y
+  coord_flip() # Cambiar a barras horizontales para más legibilidad
+
+```
+
+```{r}
+partidos_ganadores |> 
+  ggplot(aes(x = as.factor(municipio), y = porcentaje_votos, fill = partido)) +
+  geom_bar(stat = "identity", position = position_dodge(width = 0.9), size = 0.3) + # Bordes negros finos para separar las barras
+=======
   ggplot(aes(x = as.factor(codigo_municipio), y = porcentaje_votos , fill = partido)) +
   geom_bar(stat = "identity", position = position_dodge()) +
+>>>>>>> Stashed changes
   facet_wrap(~ eleccion, scales = "free_x") +
   labs(
     title = "Partidos Ganadores por Municipio y Elección",
+    subtitle = "Porcentaje de votos por partido en municipios seleccionados",
     x = "Código de Municipio",
-    y = "Votos Totales",
+    y = "Porcentaje de Votos",
     fill = "Partido"
   ) +
-  scale_x_discrete(breaks = function(x) x[seq(1, length(x), by = 13)]) +  # Escala de municipios de 13 en 13
+  scale_x_discrete(breaks = function(x) x[seq(1, length(x), by = 4)]) +  # Mostrar cada 13 municipios para evitar sobrecarga
   scale_fill_manual(values = colores_partidos) +
-  theme_minimal() +
+  theme_minimal(base_size = 12) + # Tamaño base de texto ajustado
   theme(
-    axis.text.x = element_text(angle = 90, hjust = 1, size = 5),  # Rotación completa con tamaño reducido
-    legend.position = "right"  # Leyenda a la derecha
-  )
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 7), # Rotación vertical con ajuste
+    axis.title.x = element_text(size = 10, face = "bold"),
+    axis.title.y = element_text(size = 10, face = "bold"),
+    strip.text = element_text(size = 10, face = "bold"), # Facetas más claras y en negrita
+    plot.title = element_text(size = 16, face = "bold", hjust = 0.5), # Título centrado y destacado
+    plot.subtitle = element_text(size = 12, hjust = 0.5), # Subtítulo centrado
+    legend.position = "right", # Leyenda en la parte inferior para aprovechar el espacio
+    legend.title = element_text(face = "bold"),
+    legend.text = element_text(size = 9)
+  ) +
+  scale_y_continuous(labels = scales::percent_format(scale = 1)) # Mostrar porcentaje en eje Y
+
 ```
 
 ```{r}

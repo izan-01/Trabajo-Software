@@ -1,0 +1,11 @@
+"0","# Paso 1: Filtrar y ordenar los partidos por votos totales"
+"0","partidos_rurales_sin_otros <- distribucion_rural %>%"
+"0","  filter(partido_grupo != ""OTROS"") %>%  # Excluir la categoría ""OTROS"""
+"0","  group_by(partido_grupo) %>%  # Agrupar por partido"
+"0","  summarise("
+"0","    votos_totales = sum(votos_totales, na.rm = TRUE),  # Sumar los votos totales"
+"0","    .groups = ""drop"""
+"0","  ) %>%"
+"0","  arrange(desc(votos_totales))  # Ordenar de mayor a menor votos"
+"2","Error: objeto 'distribucion_rural' no encontrado
+"
