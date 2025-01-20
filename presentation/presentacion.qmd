@@ -1,0 +1,244 @@
+---
+title: "presentacion"
+format: revealjs
+editor: visual
+---
+
+## LIMPIEZA
+
+```{r}
+rm(list = ls())
+library(tidyverse)
+library(ggplot2)
+library(glue)
+library(forcats)
+library(lubridate)
+library(mapSpain)
+election_data <- read_csv(file = "../data/data/datos_elecciones_brutos.csv")
+cod_mun <- read_csv(file = "../data/data/cod_mun.csv")
+surveys <- read_csv(file = "../data/data/historical_surveys.csv")
+abbrev <- read_csv(file = "../data/data/siglas.csv")
+```
+
+### HISTORICAL SURVEYS
+
+```{r}
+partidos_a_filtrar <- c("PARTIDO SOCIALISTA OBRERO ESPAÑOL", "PSOE", 
+                        "PARTIDO POPULAR", 
+                        "CIUDADANOS", "C'S", 
+                        "PARTIDO NACIONALISTA VASCO", "EAJ-PNV", 
+                        "BLOQUE NACIONALISTA GALLEGO", "BNG", 
+                        "CONVERGÈNCIA I UNIÓ", "CDC", 
+                        "UNIDAS PODEMOS", "IU", "PODEM", "EZKER BATUA", 
+                        "ESQUERRA REPUBLICANA DE CATALUNYA", "ERC", 
+                        "EH - BILDU", "SORTU", "EUSKO ALKARTASUNA", 
+                        "ALTERNATIBA", "ARALAR", 
+                        "MÁS PAÍS", "VOX")
+
+
+filtrado <- abbrev |> 
+  filter(str_detect(denominacion, str_c(partidos_a_filtrar, collapse = "|"))) |> 
+  mutate(siglas = case_when(
+    str_detect(denominacion, "PARTIDO SOCIALISTA OBRERO ESPAÑOL|PSOE") ~ "PSOE",
+    str_detect(denominacion, "PARTIDO POPULAR|PP") ~ "PP",
+    str_detect(denominacion, "CIUDADANOS|C'S") ~ "CIUDADANOS",
+    str_detect(denominacion, "PARTIDO NACIONALISTA VASCO|EAJ-PNV") ~ "PNV",
+    str_detect(denominacion, "BLOQUE NACIONALISTA GALLEGO|BNG") ~ "BNG",
+    str_detect(denominacion, "CONVERGÈNCIA I UNIÓ|CDC") ~ "CIU",
+    str_detect(denominacion, "UNIDAS PODEMOS|EZKER BATUA|IU|PODEM") ~ "UNIDAS PODEMOS",
+    str_detect(denominacion, "ESQUERRA REPUBLICANA DE CATALUNYA|ERC") ~ "ERC",
+    str_detect(denominacion, "EH-BILDU|SORTU|EUSKO ALKARTASUNA|ARALAR|ALTERNATIBA") ~ "EH-BILDU",
+    str_detect(denominacion, "MÁS PAÍS") ~ "MÁS PAÍS",
+    str_detect(denominacion, "VOX") ~ "VOX"
+  )) |> 
+    distinct(denominacion, siglas, .keep_all = TRUE)
+```
+
+```{r}
+tidy_surveys<-
+  surveys |> 
+  pivot_longer(cols = -c(type_survey : turnout), names_to= "partidos",
+               values_to = "count", values_drop_na = TRUE)
+tidy_surveys<- tidy_surveys |> 
+  filter(date_elec>= "2008-01-01") |> 
+  select(-type_survey)
+tidy_surveys<- tidy_surveys |> 
+  left_join(filtrado, by = c("partidos" = "siglas")) |> 
+  mutate(partido = if_else(partidos %in% filtrado$siglas, partidos, "OTROS")) |> 
+  select(-partidos) |> 
+  relocate(partido, .before = turnout)
+tidy_surveys <- tidy_surveys |> 
+  group_by(
+    date_elec,       # Fecha de la elección
+    id_pollster,     # Identificador de la casa encuestadora
+    pollster,        # Nombre de la casa encuestadora
+    media,           # Medio asociado
+    partido         # Partido (incluyendo "OTROS")
+  ) |> 
+  summarise(
+    count = sum(count, na.rm = TRUE),   # Sumar votos por partido
+    field_date_from = first(field_date_from),  # Duración del trabajo de campo (igual para todas las filas de una encuesta)
+    field_date_to = first(field_date_to),
+    exit_poll = first(exit_poll),      # Si es o no encuesta a pie de urna (debe ser igual dentro del grupo)
+    size = first(size),                # Tamaño muestral
+    turnout = first(turnout),          # Participación estimada
+    .groups = "drop"                   # Eliminar niveles de agrupación
+  )
+tidy_surveys<- tidy_surveys |> 
+  filter(exit_poll!= TRUE) |> 
+  filter(!is.na(size) & size >= 500) |> 
+  select(-exit_poll)
+tidy_surveys<- tidy_surveys |> 
+  mutate(field_duration = ymd(field_date_to) - ymd(field_date_from)) |> 
+  filter(field_duration > 1) |> 
+  select(-c(field_date_from, field_date_to)) |> 
+  relocate(field_duration, .after = media)
+```
+
+### DATOS ELECCIONES
+
+```{r}
+datos_elecciones_tidy <- election_data |> 
+  pivot_longer(
+    cols = -c(tipo_eleccion, anno, mes, vuelta, codigo_ccaa, codigo_provincia, codigo_municipio, 
+              codigo_distrito_electoral, numero_mesas, censo, participacion_1, participacion_2, 
+              votos_blancos, votos_nulos, votos_candidaturas),
+    names_to = "partido",
+    values_to = "votos"
+  ) |> 
+  left_join(filtrado, by = c("partido" = "denominacion")) |> 
+  mutate(partido = coalesce(siglas, "OTROS")) |> 
+  group_by(tipo_eleccion, anno, mes, vuelta, codigo_ccaa, codigo_provincia, codigo_municipio, partido, censo) |> 
+  summarise(votos = sum(votos, na.rm = TRUE), .groups = "drop") |> 
+  filter(votos > 0) |>  # Eliminar partidos con 0 votos
+  filter(across(everything(), ~ !is.na(.))) |>  # Eliminar valores NA
+    mutate(
+    codigo_municipio = glue::glue("{codigo_ccaa}-{codigo_provincia}-{codigo_municipio}")) |> # Crear el nuevo codigo_municipio en formato xx-xx-xxx
+  left_join(cod_mun, by= c("codigo_municipio"="cod_mun")) |>  # Hacer join con cod_mun para agregar el nombre del municipio
+  select(-codigo_ccaa, -codigo_provincia)
+  
+# Seleccionar columnas relevantes y ajustar datos
+datos_elecciones_tidy <- datos_elecciones_tidy |> 
+  select(where(~ n_distinct(.) > 1)) |> # Eliminar columnas constantes
+  mutate(mes = as.numeric(mes)) # Convertir mes a formato numérico
+```
+
+## PREGUNTA 1
+
+-   ¿Qué partido fue el ganador en los municipios con más de 100.000 habitantes (censo) en cada una de las elecciones?
+
+```{r}
+# Filtrar los municipios con un censo mayor a 100,000 habitantes
+municipios_grandes <- datos_elecciones_tidy |> 
+  filter(censo > 100000) 
+
+# Crear una columna combinada de eleccion (año y mes) para agrupar más fácilmente
+# Utilizamos el paquete lubridate para gestionar las fechas si fuera necesario
+municipios_grandes <- municipios_grandes |> 
+  mutate(eleccion = glue::glue("{anno}-{mes}"))
+
+totales_municipio <- municipios_grandes |> 
+  group_by(eleccion, codigo_municipio) |> 
+  summarise(votos_totales_municipio = sum(votos, na.rm = TRUE), .groups = "drop")
+
+# 5. Agregar el total de votos por municipio a la tabla original
+municipios_grandes <- municipios_grandes |> 
+  left_join(totales_municipio, by = c("eleccion", "codigo_municipio"))
+
+municipios_grandes <- municipios_grandes |> 
+  mutate(porcentaje_votos = (votos / votos_totales_municipio) * 100)
+
+# 7. Agrupar por elección, municipio y partido para calcular votos y porcentajes
+resumen_votos <- municipios_grandes |> 
+  group_by(eleccion, codigo_municipio, partido,municipio,censo) |> 
+  summarise(
+    votos_totales = sum(votos, na.rm = TRUE),
+    porcentaje_votos = sum(porcentaje_votos, na.rm = TRUE), 
+    .groups = "drop"
+  )
+
+partidos_ganadores <- resumen_votos |> 
+  group_by(eleccion, codigo_municipio) |> 
+  slice_max(porcentaje_votos, n = 1, with_ties = FALSE) |> 
+  ungroup()
+```
+
+```{r}
+# Elegimos los colores de cada partido
+colores_partidos <- c(
+  "BNG" = "#FF5733", 
+  "CIUDADANOS" = "#FFC300", 
+  "EH-BILDU" = "#DAF7A6", 
+  "ERC" = "#FF33FF", 
+  "MÁS PAÍS" = "#33FF57", 
+  "OTROS" = "#8C8C8C", 
+  "PNV" = "#33DFFF", 
+  "PP" = "#0000FF", 
+  "PSOE" = "#FF0000", 
+  "UNIDAS PODEMOS" = "#800080", 
+  "VOX" = "#008000"
+)
+
+partidos_ganadores |> 
+  ggplot(aes(x = as.factor(codigo_municipio), y = porcentaje_votos, fill = partido)) +
+  geom_bar(stat = "identity", position = position_dodge(width = 0.9), color = "black", size = 0.2) + # Bordes negros finos para separar las barras
+  facet_wrap(~ eleccion, scales = "free_x") +
+  labs(
+    title = "Partidos Ganadores por Municipio y Elección",
+    subtitle = "Porcentaje de votos por partido en municipios seleccionados",
+    x = "Código de Municipio",
+    y = "Porcentaje de Votos",
+    fill = "Partido"
+  ) +
+  scale_x_discrete(breaks = function(x) x[seq(1, length(x), by = 13)]) +  # Mostrar cada 13 municipios para evitar sobrecarga
+  scale_fill_manual(values = colores_partidos) +
+  theme_minimal(base_size = 12) + # Tamaño base de texto ajustado
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 7), # Rotación vertical con ajuste
+    axis.title.x = element_text(size = 10, face = "bold"),
+    axis.title.y = element_text(size = 10, face = "bold"),
+    strip.text = element_text(size = 10, face = "bold"), # Facetas más claras y en negrita
+    plot.title = element_text(size = 16, face = "bold", hjust = 0.5), # Título centrado y destacado
+    plot.subtitle = element_text(size = 12, hjust = 0.5), # Subtítulo centrado
+    legend.position = "right", # Leyenda en la parte inferior para aprovechar el espacio
+    legend.title = element_text(face = "bold"),
+    legend.text = element_text(size = 9)
+  ) +
+  scale_y_continuous(labels = scales::percent_format(scale = 1)) # Mostrar porcentaje en eje Y
+```
+
+```         
+
+municipios_grandes <- datos_elecciones_tidy |> 
+  filter(censo > 100000) 
+
+# Crear una columna combinada de eleccion (año y mes) para agrupar más fácilmente
+# Utilizamos el paquete lubridate para gestionar las fechas si fuera necesario
+municipios_grandes <- municipios_grandes |> 
+  mutate(eleccion = glue::glue("{anno}-{mes}"))
+
+totales_municipio <- municipios_grandes |> 
+  group_by(eleccion, codigo_municipio) |> 
+  summarise(votos_totales_municipio = sum(votos, na.rm = TRUE), .groups = "drop")
+
+# 5. Agregar el total de votos por municipio a la tabla original
+municipios_grandes <- municipios_grandes |> 
+  left_join(totales_municipio, by = c("eleccion", "codigo_municipio"))
+
+municipios_grandes <- municipios_grandes |> 
+  mutate(porcentaje_votos = (votos / votos_totales_municipio) * 100)
+
+# 7. Agrupar por elección, municipio y partido para calcular votos y porcentajes
+resumen_votos <- municipios_grandes |> 
+  group_by(eleccion, codigo_municipio, partido,municipio,censo) |> 
+  summarise(
+    votos_totales = sum(votos, na.rm = TRUE),
+    porcentaje_votos = sum(porcentaje_votos, na.rm = TRUE), 
+    .groups = "drop"
+  )
+
+partidos_ganadores <- resumen_votos |> 
+  group_by(eleccion, codigo_municipio) |> 
+  slice_max(porcentaje_votos, n = 1, with_ties = FALSE) |> 
+  ungroup()
+```

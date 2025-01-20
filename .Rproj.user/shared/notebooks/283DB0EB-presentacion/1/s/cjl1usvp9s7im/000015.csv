@@ -1,0 +1,10 @@
+"0","rm(list = ls())"
+"0","library(tidyverse)"
+"0","library(ggplot2)"
+"0","library(glue)"
+"0","library(forcats)"
+"0","library(lubridate)"
+"0","library(mapSpain)"
+"0","election_data <- read_csv(file = ""../data/data/datos_elecciones_brutos.csv"")"
+"2","Error: '../data/data/datos_elecciones_brutos.csv' does not exist in current working directory ('C:/Users/PORTATIL/Desktop/PROYECTO SOFTWARE - GITHUB/Trabajo-Software').
+"
